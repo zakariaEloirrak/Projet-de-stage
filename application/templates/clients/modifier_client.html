@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Modifier {{ client.nom_societe }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1><i class="fas fa-edit"></i> Modifier {{ client.nom_societe }}</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'client_dashboard' %}">Clients</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'liste_clients' %}">Liste</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'detail_client' client.id %}">{{ client.nom_societe }}</a></li>
+                <li class="breadcrumb-item active">Modifier</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-10 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-edit"></i> Modifier les Informations</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Code client (lecture seule) -->
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Code Client:</strong> {{ client.code_client }}
+                    </div>
+                    
+                    <!-- ...existing code similar to ajouter_client.html... -->
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'detail_client' client.id %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Mettre à jour
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

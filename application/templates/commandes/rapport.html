@@ -1,0 +1,590 @@
+{% extends 'base.html' %}
+
+{% block title %}Rapport des Commandes{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .breadcrumb a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .report-filters {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .form-group input {
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--success-color) 0%, #047857 100%);
+        color: white;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: var(--radius-lg);
+        text-align: center;
+    }
+
+    .stat-card.success {
+        background: linear-gradient(135deg, var(--success-color) 0%, #047857 100%);
+    }
+
+    .stat-card.warning {
+        background: linear-gradient(135deg, var(--warning-color) 0%, #b45309 100%);
+    }
+
+    .stat-card.info {
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        opacity: 0.9;
+        font-size: 0.875rem;
+    }
+
+    .card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: var(--background-color);
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .chart-container {
+        height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--background-color);
+        border-radius: var(--radius-md);
+        color: var(--text-secondary);
+    }
+
+    .top-clients-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .top-clients-table th,
+    .top-clients-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .top-clients-table th {
+        background: var(--background-color);
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .top-clients-table tr:hover {
+        background: var(--background-color);
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .status-brouillon {
+        background: rgba(107, 114, 128, 0.1);
+        color: #6b7280;
+    }
+
+    .status-confirmee {
+        background: rgba(37, 99, 235, 0.1);
+        color: #2563eb;
+    }
+
+    .status-livree {
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+    }
+
+    .period-info {
+        background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+        border: 1px solid var(--warning-color);
+        border-radius: var(--radius-lg);
+        padding: 1rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        color: #92400e;
+    }
+
+    .export-actions {
+        text-align: center;
+        margin-top: 2rem;
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .export-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-chart-bar"></i> Rapport des Commandes</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'commande_dashboard' %}">Commandes</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Rapport</span>
+    </div>
+</div>
+
+<!-- Filtres de période -->
+<div class="report-filters">
+    <form method="GET" class="filter-form">
+        <div class="form-group">
+            <label for="date_debut">Date de début:</label>
+            <input type="date" id="date_debut" name="date_debut" value="{{ date_debut }}">
+        </div>
+        <div class="form-group">
+            <label for="date_fin">Date de fin:</label>
+            <input type="date" id="date_fin" name="date_fin" value="{{ date_fin }}">
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-filter"></i> Filtrer
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Informations sur la période -->
+<div class="period-info">
+    <strong>Période analysée:</strong> Du {{ date_debut }} au {{ date_fin }}
+    <br>
+    <small>Rapport généré le {{ "now"|date:"d/m/Y à H:i" }}</small>
+</div>
+
+<!-- Statistiques générales -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_commandes }}</div>
+        <div class="stat-label">Total Commandes</div>
+    </div>
+    <div class="stat-card success">
+        <div class="stat-value">{{ stats.ca_total|floatformat:2 }} MAD</div>
+        <div class="stat-label">Chiffre d'Affaires</div>
+    </div>
+    <div class="stat-card warning">
+        <div class="stat-value">{{ stats.panier_moyen|floatformat:2 }} MAD</div>
+        <div class="stat-label">Panier Moyen</div>
+    </div>
+    <div class="stat-card info">
+        <div class="stat-value">{{ stats.commandes_par_statut|length }}</div>
+        <div class="stat-label">Statuts Différents</div>
+    </div>
+</div>
+
+<!-- Graphiques -->
+<div class="charts-grid">
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-chart-pie"></i>
+            Répartition par Statut
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-chart-bar"></i>
+            Répartition par Type
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="typeChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Clients -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-users"></i>
+        Top 10 Clients
+    </div>
+    <div class="card-body">
+        {% if stats.top_clients %}
+        <table class="top-clients-table">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Nb Commandes</th>
+                    <th>CA (MAD)</th>
+                    <th>Panier Moyen (MAD)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in stats.top_clients %}
+                <tr>
+                    <td>{{ client.client__nom_societe }}</td>
+                    <td>{{ client.nb_commandes }}</td>
+                    <td>{{ client.ca|floatformat:2 }}</td>
+                    <td>
+                        {% if client.nb_commandes > 0 %}
+                            {{ client.ca|floatformat:2|add:"0"|floatformat:0 }}
+                            <script>
+                                document.write(({{ client.ca|default:0 }} / {{ client.nb_commandes }}).toFixed(2));
+                            </script>
+                        {% else %}
+                            0.00
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+            <p>Aucune donnée de commande disponible pour cette période.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Détail par statut -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-list"></i>
+        Détail par Statut
+    </div>
+    <div class="card-body">
+        {% if stats.commandes_par_statut %}
+        <div class="stats-grid">
+            {% for statut in stats.commandes_par_statut %}
+            <div class="stat-card">
+                <div class="stat-value">{{ statut.count }}</div>
+                <div class="stat-label">{{ statut.statut }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+            <p>Aucune statistique par statut disponible.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Actions d'export -->
+<div class="export-actions">
+    <button onclick="telechargerRapportPDF()" class="btn btn-primary">
+        <i class="fas fa-file-pdf"></i> Télécharger PDF
+    </button>
+    <button onclick="exportToCSV()" class="btn btn-success">
+        <i class="fas fa-file-csv"></i> Exporter en CSV
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Données pour les graphiques
+const statusData = [
+    {% for statut in stats.commandes_par_statut %}
+    {
+        label: '{{ statut.statut }}',
+        count: {{ statut.count }}
+    },
+    {% endfor %}
+];
+
+const typeData = [
+    {% for type in stats.commandes_par_type %}
+    {
+        label: '{{ type.type_commande }}',
+        count: {{ type.count }}
+    },
+    {% endfor %}
+];
+
+// Graphique des statuts
+if (statusData.length > 0) {
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'pie',
+        data: {
+            labels: statusData.map(item => item.label),
+            datasets: [{
+                data: statusData.map(item => item.count),
+                backgroundColor: [
+                    '#2563eb',
+                    '#059669',
+                    '#d97706',
+                    '#dc2626',
+                    '#7c3aed',
+                    '#0891b2'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+} else {
+    document.getElementById('statusChart').parentElement.innerHTML = 
+        '<div style="text-align: center; color: #6b7280;">Aucune donnée disponible</div>';
+}
+
+// Graphique des types
+if (typeData.length > 0) {
+    const typeCtx = document.getElementById('typeChart').getContext('2d');
+    new Chart(typeCtx, {
+        type: 'bar',
+        data: {
+            labels: typeData.map(item => item.label),
+            datasets: [{
+                label: 'Nombre de commandes',
+                data: typeData.map(item => item.count),
+                backgroundColor: '#2563eb',
+                borderColor: '#1d4ed8',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+} else {
+    document.getElementById('typeChart').parentElement.innerHTML = 
+        '<div style="text-align: center; color: #6b7280;">Aucune donnée disponible</div>';
+}
+
+// Télécharger le rapport en PDF
+function telechargerRapportPDF() {
+    const printWindow = window.open('', '_blank');
+    
+    // Récupérer le contenu du rapport
+    const rapportContent = document.body.innerHTML;
+    
+    // Style CSS pour le PDF
+    const pdfStyles = `
+        <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+            .page-header, .report-filters, .navbar { display: none !important; }
+            .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+            .stat-card { background: #2563eb !important; color: white !important; padding: 1.5rem; border-radius: 10px; text-align: center; }
+            .stat-card.success { background: #059669 !important; }
+            .stat-card.warning { background: #d97706 !important; }
+            .stat-card.info { background: #0ea5e9 !important; }
+            .stat-value { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+            .stat-label { opacity: 0.9; font-size: 0.875rem; }
+            .card { background: white; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 2rem; overflow: hidden; }
+            .card-header { background: #f8fafc; padding: 1.5rem; border-bottom: 1px solid #e2e8f0; font-weight: 600; }
+            .card-body { padding: 1.5rem; }
+            .charts-grid { display: none; }
+            .top-clients-table { width: 100%; border-collapse: collapse; }
+            .top-clients-table th, .top-clients-table td { padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
+            .top-clients-table th { background: #f8fafc; font-weight: 600; }
+            h1, h5 { color: #1e293b; }
+            @media print { body { margin: 0; } }
+        </style>
+    `;
+    
+    // Écrire le contenu dans la nouvelle fenêtre
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Rapport des Commandes - ${new Date().toLocaleDateString()}</title>
+            ${pdfStyles}
+        </head>
+        <body>
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h1>Rapport des Commandes</h1>
+                <p>Période du {{ date_debut }} au {{ date_fin }}</p>
+                <p>Généré le ${new Date().toLocaleDateString()} à ${new Date().toLocaleTimeString()}</p>
+            </div>
+            ${rapportContent}
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    
+    // Déclencher l'impression
+    printWindow.onload = function() {
+        printWindow.print();
+        printWindow.onafterprint = function() {
+            printWindow.close();
+        };
+    };
+}
+
+// Export CSV
+function exportToCSV() {
+    const data = [
+        ['Client', 'Nb Commandes', 'CA (MAD)', 'Panier Moyen (MAD)'],
+        {% for client in stats.top_clients %}
+        ['{{ client.client__nom_societe }}', '{{ client.nb_commandes }}', '{{ client.ca|floatformat:2 }}', '{% if client.nb_commandes > 0 %}{{ client.ca|floatformat:2 }}{% else %}0.00{% endif %}'],
+        {% endfor %}
+    ];
+    
+    // Calculate average basket for each client
+    const processedData = data.map((row, index) => {
+        if (index === 0) return row; // Header row
+        const ca = parseFloat(row[2]) || 0;
+        const nbCommandes = parseInt(row[1]) || 0;
+        const panierMoyen = nbCommandes > 0 ? (ca / nbCommandes).toFixed(2) : '0.00';
+        return [row[0], row[1], row[2], panierMoyen];
+    });
+    
+    const csvContent = "data:text/csv;charset=utf-8," 
+        + processedData.map(e => e.join(",")).join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "rapport_commandes_{{ date_debut }}_{{ date_fin }}.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+{% endblock %}

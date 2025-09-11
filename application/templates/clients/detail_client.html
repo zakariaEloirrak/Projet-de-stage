@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ client.nom_societe }} - Détails Client{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1><i class="fas fa-user"></i> {{ client.nom_societe }}</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'client_dashboard' %}">Clients</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'liste_clients' %}">Liste</a></li>
+                <li class="breadcrumb-item active">{{ client.nom_societe }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Informations du client -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> Informations Client</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Code:</strong></td>
+                        <td>{{ client.code_client }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Société:</strong></td>
+                        <td>{{ client.nom_societe }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Email:</strong></td>
+                        <td>{{ client.email }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Téléphone:</strong></td>
+                        <td>{{ client.telephone|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pays:</strong></td>
+                        <td>{{ client.pays|default:"N/A" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Type:</strong></td>
+                        <td>
+                            <span class="badge 
+                                {% if client.role == 'CLIENT' %}bg-success
+                                {% else %}bg-info{% endif %}">
+                                {{ client.get_role_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>RC:</strong></td>
+                        <td>{{ client.numero_registre_commerce|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ICE:</strong></td>
+                        <td>{{ client.numero_ice|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Créé le:</strong></td>
+                        <td>{{ client.date_creation|date:"d/m/Y" }}</td>
+                    </tr>
+                </table>
+                
+                {% if client.adresse %}
+                <div class="mt-3">
+                    <strong>Adresse:</strong>
+                    <p class="text-muted">{{ client.adresse }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="d-grid gap-2 mt-3">
+                    <a href="{% url 'modifier_client' client.id %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                    <button type="button" class="btn btn-danger" 
+                            onclick="confirmerDesactivation()">
+                        <i class="fas fa-ban"></i> Désactiver
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistiques du client -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Statistiques</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-primary">{{ total_commandes }}</h4>
+                        <small class="text-muted">Total Commandes</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-warning">{{ commandes_en_cours }}</h4>
+                        <small class="text-muted">En Cours</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-success">{{ total_factures }}</h4>
+                        <small class="text-muted">Total Factures</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-danger">{{ factures_impayees }}</h4>
+                        <small class="text-muted">Impayées</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <h4 class="text-info">{{ ca_total|floatformat:2 }} MAD</h4>
+                    <small class="text-muted">Chiffre d'Affaires Total</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Commandes et évolution -->
+    <div class="col-md-8">
+        <!-- Évolution des commandes -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line"></i> Évolution des Commandes (6 derniers mois)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="evolutionChart" style="height: 300px;"></canvas>
+            </div>
+        </div>
+        
+        <!-- Commandes récentes -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <h5><i class="fas fa-shopping-cart"></i> Commandes Récentes</h5>
+                <button class="btn btn-sm btn-outline-primary">
+                    Voir tout
+                </button>
+            </div>
+            <div class="card-body">
+                {% if commandes %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>N° Commande</th>
+                                <th>Type</th>
+                                <th>Statut</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for commande in commandes %}
+                            <tr>
+                                <td>{{ commande.numero_commande }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ commande.get_type_commande_display }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if commande.statut == 'LIVREE' %}bg-success
+                                        {% elif commande.statut == 'ANNULEE' %}bg-danger
+                                        {% elif commande.statut == 'EXPEDIEE' %}bg-info
+                                        {% else %}bg-warning{% endif %}">
+                                        {{ commande.get_statut_display }}
+                                    </span>
+                                </td>
+                                <td>{{ commande.date_creation|date:"d/m/Y" }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Aucune commande pour ce client</h5>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de désactivation -->
+<div class="modal fade" id="confirmDesactivationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmer la désactivation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir désactiver le client <strong>{{ client.nom_societe }}</strong> ?</p>
+                <p class="text-muted">Cette action peut être annulée en réactivant le client.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="post" action="{% url 'desactiver_client' client.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Désactiver</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Graphique d'évolution des commandes
+const chartData = {{ chart_data|safe }};
+const ctx = document.getElementById('evolutionChart').getContext('2d');
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: chartData.map(item => item.mois),
+        datasets: [{
+            label: 'Commandes',
+            data: chartData.map(item => item.commandes),
+            borderColor: '#36A2EB',
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+function confirmerDesactivation() {
+    new bootstrap.Modal(document.getElementById('confirmDesactivationModal')).show();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,495 @@
+/* ========================================
+   CSS SPÉCIFIQUE POUR LE DASHBOARD COMMANDES
+   ======================================== */
+
+/* Import du CSS principal des commandes */
+@import url('commandes.css');
+
+/* ========================================
+   STATISTIQUES AVANCÉES
+   ======================================== */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, var(--commande-primary) 0%, var(--commande-primary-dark) 100%);
+    padding: 2rem;
+    border-radius: var(--commande-radius-lg);
+    color: white;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(30px, -30px);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--commande-shadow-lg);
+}
+
+.stat-card:hover::before {
+    transform: translate(20px, -20px) scale(1.1);
+}
+
+.stat-card.success {
+    background: linear-gradient(135deg, var(--commande-success) 0%, #047857 100%);
+}
+
+.stat-card.warning {
+    background: linear-gradient(135deg, var(--commande-warning) 0%, #b45309 100%);
+}
+
+.stat-card.info {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+}
+
+.stat-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-info h5 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.stat-info h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.stat-icon {
+    font-size: 3rem;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1);
+    opacity: 1;
+}
+
+/* ========================================
+   ACTIONS RAPIDES AMÉLIORÉES
+   ======================================== */
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.action-card {
+    background: var(--commande-surface);
+    border: 1px solid var(--commande-border);
+    border-radius: var(--commande-radius-lg);
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: var(--commande-text-primary);
+    position: relative;
+    overflow: hidden;
+}
+
+.action-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, var(--commande-primary) 0%, var(--commande-primary-dark) 100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 0;
+}
+
+.action-card:hover {
+    box-shadow: var(--commande-shadow-md);
+    transform: translateY(-2px);
+    color: white;
+}
+
+.action-card:hover::before {
+    opacity: 1;
+}
+
+.action-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.action-card i {
+    font-size: 2rem;
+    color: var(--commande-primary);
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.action-card:hover i {
+    color: white;
+    transform: scale(1.1);
+}
+
+.action-card h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    transition: all 0.3s ease;
+}
+
+/* ========================================
+   GRAPHIQUES ET CHARTS
+   ======================================== */
+
+.content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    background: var(--commande-surface);
+    border-radius: var(--commande-radius-lg);
+    padding: 1rem;
+    border: 1px solid var(--commande-border);
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--commande-border);
+}
+
+.chart-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--commande-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.chart-title i {
+    color: var(--commande-primary);
+}
+
+.chart-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.chart-btn {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--commande-border);
+    border-radius: var(--commande-radius-sm);
+    background: var(--commande-surface);
+    color: var(--commande-text-secondary);
+    text-decoration: none;
+    font-size: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.chart-btn:hover {
+    background: var(--commande-primary);
+    color: white;
+    border-color: var(--commande-primary);
+}
+
+/* ========================================
+   TABLEAU DES COMMANDES RÉCENTES
+   ======================================== */
+
+.recent-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--commande-surface);
+}
+
+.recent-table th {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--commande-text-primary);
+    border-bottom: 2px solid var(--commande-border);
+    font-size: 0.875rem;
+}
+
+.recent-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--commande-border);
+    vertical-align: middle;
+    font-size: 0.875rem;
+}
+
+.recent-table tr:hover {
+    background: rgba(37, 99, 235, 0.02);
+}
+
+.recent-table .order-number {
+    font-family: 'Courier New', monospace;
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--commande-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--commande-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.recent-table .client-name {
+    font-weight: 500;
+    color: var(--commande-text-primary);
+}
+
+.recent-table .type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.recent-table .type-badge.export {
+    background: rgba(34, 197, 94, 0.1);
+    color: #059669;
+}
+
+.recent-table .type-badge.import {
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+}
+
+.recent-table .type-badge.local {
+    background: rgba(168, 85, 247, 0.1);
+    color: #7c3aed;
+}
+
+/* ========================================
+   ÉTAT VIDE AMÉLIORÉ
+   ======================================== */
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--commande-text-secondary);
+    background: var(--commande-surface);
+    border-radius: var(--commande-radius-lg);
+    border: 1px solid var(--commande-border);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+    color: var(--commande-primary);
+}
+
+.empty-state h5 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--commande-text-primary);
+}
+
+.empty-state p {
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .chart-container {
+        height: 250px;
+    }
+
+    .recent-table {
+        font-size: 0.75rem;
+    }
+
+    .recent-table th,
+    .recent-table td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        padding: 1.5rem;
+    }
+
+    .stat-info h2 {
+        font-size: 2rem;
+    }
+
+    .stat-icon {
+        font-size: 2.5rem;
+    }
+
+    .action-card {
+        padding: 1rem;
+    }
+
+    .action-card i {
+        font-size: 1.5rem;
+    }
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stat-card {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+.action-card {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.action-card:nth-child(1) { animation-delay: 0.1s; }
+.action-card:nth-child(2) { animation-delay: 0.2s; }
+.action-card:nth-child(3) { animation-delay: 0.3s; }
+.action-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* ========================================
+   LOADING STATES
+   ======================================== */
+
+.loading-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.stat-card.loading {
+    background: #f0f0f0;
+    color: transparent;
+}
+
+.stat-card.loading .stat-icon {
+    background: #e0e0e0;
+    border-radius: 50%;
+    width: 3rem;
+    height: 3rem;
+}
+
+/* ========================================
+   TOOLTIPS
+   ======================================== */
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: var(--commande-text-primary);
+    color: white;
+    text-align: center;
+    border-radius: var(--commande-radius-sm);
+    padding: 0.5rem;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.75rem;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: var(--commande-text-primary) transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}

@@ -1,0 +1,486 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajouter un Document - {{ commande.numero_commande }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .breadcrumb a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 0.875rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        background: #fafafa;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .file-upload-area {
+        border: 2px dashed var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        text-align: center;
+        background: #fafafa;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .file-upload-area:hover {
+        border-color: var(--primary-color);
+        background: rgba(37, 99, 235, 0.05);
+    }
+
+    .file-upload-area.dragover {
+        border-color: var(--primary-color);
+        background: rgba(37, 99, 235, 0.1);
+    }
+
+    .file-upload-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .file-upload-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        opacity: 0.7;
+    }
+
+    .file-input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .file-selected {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-color: var(--success-color);
+        color: var(--success-color);
+    }
+
+    .file-info {
+        display: none;
+        background: var(--background-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .file-info.show {
+        display: block;
+    }
+
+    .commande-info {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 1px solid #0ea5e9;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        color: #0369a1;
+    }
+
+    .document-types {
+        background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+        border: 1px solid #f59e0b;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        color: #92400e;
+    }
+
+    .type-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .type-item {
+        background: rgba(245, 158, 11, 0.1);
+        padding: 0.5rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .error-message {
+        color: var(--danger-color);
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .type-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-actions > * {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-file-upload"></i> Ajouter un Document</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'commande_dashboard' %}">Commandes</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'liste_commandes' %}">Liste</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'detail_commande' commande.id %}">{{ commande.numero_commande }}</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Ajouter Document</span>
+    </div>
+</div>
+
+<div class="form-container">
+    <!-- Informations de la commande -->
+    <div class="commande-info">
+        <h5><i class="fas fa-info-circle"></i> Commande {{ commande.numero_commande }}</h5>
+        <div style="margin-top: 0.5rem;">
+            <strong>Client:</strong> {{ commande.client.nom_societe }} <br>
+            <strong>Type:</strong> {{ commande.get_type_commande_display }} <br>
+            <strong>Statut:</strong> {{ commande.get_statut_display }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-file-plus"></i> Nouveau Document</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" id="documentForm">
+                {% csrf_token %}
+                
+                <!-- Zone de téléchargement de fichier -->
+                <div class="form-group full-width">
+                    <label><i class="fas fa-cloud-upload-alt"></i> Fichier *</label>
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <input type="file" class="file-input" id="{{ form.fichier.id_for_label }}" name="fichier" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx" required>
+                        <div class="file-upload-content" id="uploadContent">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div>
+                                <strong>Cliquez pour sélectionner un fichier</strong>
+                                <p>ou glissez-déposez le fichier ici</p>
+                            </div>
+                            <small>Formats acceptés: PDF, DOC, DOCX, JPG, PNG, XLS, XLSX (Max: 10MB)</small>
+                        </div>
+                    </div>
+                    <div class="file-info" id="fileInfo">
+                        <strong>Fichier sélectionné:</strong>
+                        <div id="fileName"></div>
+                        <div id="fileSize"></div>
+                        <div id="fileType"></div>
+                    </div>
+                    {% if form.fichier.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.fichier.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.nom_document.id_for_label }}">
+                            <i class="fas fa-tag"></i> Nom du Document *
+                        </label>
+                        {{ form.nom_document }}
+                        {% if form.nom_document.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.nom_document.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.type.id_for_label }}">
+                            <i class="fas fa-folder"></i> Type de Document *
+                        </label>
+                        {{ form.type }}
+                        {% if form.type.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.type.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.numero_document.id_for_label }}">
+                        <i class="fas fa-hashtag"></i> Numéro du Document
+                    </label>
+                    {{ form.numero_document }}
+                    {% if form.numero_document.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.numero_document.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        Numéro de référence du document (optionnel)
+                    </div>
+                </div>
+
+                <!-- Types de documents -->
+                <div class="document-types">
+                    <h6><i class="fas fa-info-circle"></i> Types de Documents Disponibles</h6>
+                    <div class="type-grid">
+                        <div class="type-item">
+                            <i class="fas fa-file-invoice"></i> Facture
+                        </div>
+                        <div class="type-item">
+                            <i class="fas fa-truck"></i> Bon de Livraison
+                        </div>
+                        <div class="type-item">
+                            <i class="fas fa-shopping-cart"></i> Bon de Commande
+                        </div>
+                        <div class="type-item">
+                            <i class="fas fa-certificate"></i> Certificat d'Origine
+                        </div>
+                        <div class="type-item">
+                            <i class="fas fa-file-export"></i> Licence d'Export
+                        </div>
+                        <div class="type-item">
+                            <i class="fas fa-ship"></i> Connaissement
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{% url 'detail_commande' commande.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <button type="submit" class="btn btn-success" id="submitBtn" disabled>
+                        <i class="fas fa-save"></i> Ajouter le Document
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('{{ form.fichier.id_for_label }}');
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const uploadContent = document.getElementById('uploadContent');
+    const fileInfo = document.getElementById('fileInfo');
+    const submitBtn = document.getElementById('submitBtn');
+    const nomDocumentInput = document.getElementById('{{ form.nom_document.id_for_label }}');
+    
+    // Gestion du glisser-déposer
+    fileUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.add('dragover');
+    });
+    
+    fileUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.remove('dragover');
+    });
+    
+    fileUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelect(files[0]);
+        }
+    });
+    
+    // Gestion de la sélection de fichier
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+    
+    function handleFileSelect(file) {
+        // Validation de la taille (10MB max)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('Le fichier est trop volumineux. Taille maximale: 10MB');
+            return;
+        }
+        
+        // Validation du type
+        const allowedTypes = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ];
+        
+        if (!allowedTypes.includes(file.type)) {
+            alert('Type de fichier non autorisé. Formats acceptés: PDF, DOC, DOCX, JPG, PNG, XLS, XLSX');
+            return;
+        }
+        
+        // Afficher les informations du fichier
+        fileUploadArea.classList.add('file-selected');
+        uploadContent.innerHTML = `
+            <div class="file-upload-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div>
+                <strong>Fichier sélectionné</strong>
+                <p>Cliquez pour changer de fichier</p>
+            </div>
+        `;
+        
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = formatFileSize(file.size);
+        document.getElementById('fileType').textContent = getFileTypeIcon(file.type) + ' ' + file.type;
+        fileInfo.classList.add('show');
+        
+        // Pré-remplir le nom du document si vide
+        if (!nomDocumentInput.value) {
+            nomDocumentInput.value = file.name.split('.')[0];
+        }
+        
+        // Activer le bouton de soumission
+        submitBtn.disabled = false;
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    function getFileTypeIcon(type) {
+        const icons = {
+            'application/pdf': '📄',
+            'application/msword': '📝',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '📝',
+            'image/jpeg': '🖼️',
+            'image/jpg': '🖼️',
+            'image/png': '🖼️',
+            'application/vnd.ms-excel': '📊',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '📊'
+        };
+        return icons[type] || '📎';
+    }
+    
+    // Validation du formulaire
+    document.getElementById('documentForm').addEventListener('submit', function(e) {
+        if (!fileInput.files.length) {
+            e.preventDefault();
+            alert('Veuillez sélectionner un fichier');
+            return false;
+        }
+        
+        if (!nomDocumentInput.value.trim()) {
+            e.preventDefault();
+            alert('Veuillez saisir un nom pour le document');
+            nomDocumentInput.focus();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

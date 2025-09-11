@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Clients{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/clients/dashboard.css' %}">
+
+<div class="page-header">
+    <h1><i class="fas fa-users"></i> Dashboard Clients</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Clients</span>
+    </div>
+    </div>
+
+<!-- Statistiques principales -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-content">
+            <div class="stat-info">
+                <h5>Total Clients</h5>
+                <h2>{{ total_clients|default:0 }}</h2>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card success">
+        <div class="stat-content">
+            <div class="stat-info">
+                <h5>Actifs</h5>
+                <h2>{{ clients_actifs|default:0 }}</h2>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card info">
+        <div class="stat-content">
+            <div class="stat-info">
+                <h5>Fournisseurs</h5>
+                <h2>{{ total_fournisseurs|default:0 }}</h2>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-handshake"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="stat-content">
+            <div class="stat-info">
+                <h5>Pays Différents</h5>
+                <h2>{{ pays_distincts|default:0 }}</h2>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-globe"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="card">
+    <div class="card-header">
+        <h5><i class="fas fa-bolt"></i> Actions Rapides</h5>
+    </div>
+    <div class="card-body">
+        <div class="actions-grid">
+            <a href="{% url 'ajouter_client' %}" class="action-card">
+                <i class="fas fa-plus"></i>
+                <h6>Nouveau Client</h6>
+            </a>
+            <a href="{% url 'liste_clients' %}" class="action-card">
+                <i class="fas fa-list"></i>
+                <h6>Liste Clients</h6>
+            </a>
+            <a href="{% url 'rapport_clients_pdf' %}" class="action-card">
+                <i class="fas fa-file-pdf"></i>
+                <h6>Rapport PDF</h6>
+            </a>
+        </div>
+    </div>
+    </div>
+
+<div class="content-grid">
+    <!-- Répartition par type -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-user-tag"></i> Répartition par Type</h5>
+        </div>
+        <div class="card-body">
+            <div class="distribution-grid">
+                <div class="distribution-item">
+                    <span class="label">Acheteurs</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ pourcentage_clients|default:0 }}%"></div>
+                    </div>
+                    <strong>{{ total_clients_type|default:0 }}</strong>
+                </div>
+                <div class="distribution-item">
+                    <span class="label">Fournisseurs</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill info" style="width: {{ pourcentage_fournisseurs|default:0 }}%"></div>
+                    </div>
+                    <strong>{{ total_fournisseurs|default:0 }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Derniers clients -->
+    <div class="card">
+        <div class="card-header flex justify-between align-center">
+            <h5><i class="fas fa-clock"></i> Derniers Clients</h5>
+            <a href="{% url 'liste_clients' %}" class="btn btn-primary btn-sm">Voir tout</a>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            {% if clients_recents %}
+            <div style="overflow-x: auto;">
+                <table class="recent-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Société</th>
+                            <th>Email</th>
+                            <th>Type</th>
+                            <th>Pays</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client in clients_recents %}
+                        <tr>
+                            <td><span class="badge bg-light text-dark">{{ client.code_client }}</span></td>
+                            <td>
+                                <a href="{% url 'detail_client' client.id %}" class="link">{{ client.nom_societe }}</a>
+                            </td>
+                            <td>{{ client.email }}</td>
+                            <td>
+                                <span class="status-badge {% if client.role == 'CLIENT' %}success{% else %}info{% endif %}">
+                                    {{ client.get_role_display }}
+                                </span>
+                            </td>
+                            <td>{{ client.pays|default:'-' }}</td>
+                            <td>{{ client.date_creation|date:"d/m/Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>Aucun client récent</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+

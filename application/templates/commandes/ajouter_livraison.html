@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+
+{% block title %}Programmer Livraison - {{ commande.numero_commande }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .breadcrumb a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .form-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 0.875rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        background: #fafafa;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .commande-info {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 1px solid #0ea5e9;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        color: #0369a1;
+    }
+
+    .delivery-info {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 1px solid #22c55e;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        color: #166534;
+    }
+
+    .vehicle-selector {
+        background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+        border: 1px solid #f59e0b;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        color: #92400e;
+    }
+
+    .vehicle-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .vehicle-card {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .vehicle-card:hover {
+        background: rgba(245, 158, 11, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .vehicle-card.selected {
+        background: rgba(34, 197, 94, 0.1);
+        border-color: var(--success-color);
+        color: var(--success-color);
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .error-message {
+        color: var(--danger-color);
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .vehicle-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-actions > * {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-truck"></i> Programmer une Livraison</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'commande_dashboard' %}">Commandes</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'liste_commandes' %}">Liste</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'detail_commande' commande.id %}">{{ commande.numero_commande }}</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Programmer Livraison</span>
+    </div>
+</div>
+
+<div class="form-container">
+    <!-- Informations de la commande -->
+    <div class="commande-info">
+        <h5><i class="fas fa-info-circle"></i> Commande {{ commande.numero_commande }}</h5>
+        <div style="margin-top: 0.5rem;">
+            <strong>Client:</strong> {{ commande.client.nom_societe }} <br>
+            <strong>Adresse client:</strong> {{ commande.client.adresse|default:"Non renseignée" }} <br>
+            <strong>Type:</strong> {{ commande.get_type_commande_display }} <br>
+            <strong>Statut:</strong> {{ commande.get_statut_display }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-shipping-fast"></i> Programmer la Livraison</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" id="livraisonForm">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.vehicule.id_for_label }}">
+                            <i class="fas fa-truck"></i> Véhicule *
+                        </label>
+                        {{ form.vehicule }}
+                        {% if form.vehicule.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.vehicule.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.date_livraison.id_for_label }}">
+                            <i class="fas fa-calendar"></i> Date et Heure de Livraison *
+                        </label>
+                        {{ form.date_livraison }}
+                        {% if form.date_livraison.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.date_livraison.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="{{ form.adresse_livraison.id_for_label }}">
+                        <i class="fas fa-map-marker-alt"></i> Adresse de Livraison *
+                    </label>
+                    {{ form.adresse_livraison }}
+                    {% if form.adresse_livraison.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.adresse_livraison.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <div style="margin-top: 0.5rem;">
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="useClientAddress()">
+                            <i class="fas fa-copy"></i> Utiliser l'adresse du client
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.chauffeur.id_for_label }}">
+                            <i class="fas fa-user"></i> Chauffeur
+                        </label>
+                        {{ form.chauffeur }}
+                        {% if form.chauffeur.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.chauffeur.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.frais_livraison.id_for_label }}">
+                            <i class="fas fa-money-bill"></i> Frais de Livraison (MAD)
+                        </label>
+                        {{ form.frais_livraison }}
+                        {% if form.frais_livraison.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.frais_livraison.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Informations de livraison -->
+                <div class="delivery-info">
+                    <h6><i class="fas fa-info-circle"></i> Informations de Livraison</h6>
+                    <div style="margin-top: 0.5rem; font-size: 0.875rem;">
+                        <p><i class="fas fa-clock"></i> Délai estimé : Calculé automatiquement selon la distance</p>
+                        <p><i class="fas fa-phone"></i> Le client sera contacté 24h avant la livraison</p>
+                        <p><i class="fas fa-signature"></i> Signature électronique requise à la livraison</p>
+                    </div>
+                </div>
+
+                <!-- Sélection rapide de véhicule -->
+                <div class="vehicle-selector" id="vehicleSelector" style="display: none;">
+                    <h6><i class="fas fa-truck"></i> Véhicules Disponibles</h6>
+                    <div class="vehicle-grid" id="vehicleGrid">
+                        <!-- Véhicules seront chargés ici via JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{% url 'detail_commande' commande.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Programmer la Livraison
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const vehiculeSelect = document.getElementById('{{ form.vehicule.id_for_label }}');
+    const chauffeurInput = document.getElementById('{{ form.chauffeur.id_for_label }}');
+    const fraisInput = document.getElementById('{{ form.frais_livraison.id_for_label }}');
+    const adresseTextarea = document.getElementById('{{ form.adresse_livraison.id_for_label }}');
+    
+    // Pré-remplir l'adresse du client
+    const clientAddress = "{{ commande.client.adresse|default:'' }}";
+    if (clientAddress && !adresseTextarea.value) {
+        adresseTextarea.value = clientAddress;
+    }
+    
+    // Fonction pour utiliser l'adresse du client
+    window.useClientAddress = function() {
+        if (clientAddress) {
+            adresseTextarea.value = clientAddress;
+        } else {
+            alert('Aucune adresse enregistrée pour ce client');
+        }
+    };
+    
+    // Suggestion de frais selon la distance (simulation)
+    adresseTextarea.addEventListener('blur', function() {
+        if (this.value && !fraisInput.value) {
+            // Simulation simple de calcul de frais
+            const words = this.value.split(' ').length;
+            let estimatedCost = 50; // Base
+            if (words > 5) estimatedCost = 100; // Adresse plus détaillée = plus loin
+            if (this.value.toLowerCase().includes('casablanca')) estimatedCost = 200;
+            if (this.value.toLowerCase().includes('rabat')) estimatedCost = 150;
+            if (this.value.toLowerCase().includes('marrakech')) estimatedCost = 300;
+            
+            fraisInput.value = estimatedCost;
+        }
+    });
+    
+    // Auto-complétion du chauffeur selon le véhicule
+    vehiculeSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption.value) {
+            // En production, vous récupéreriez ces données via AJAX
+            const vehicleData = {
+                '1': { chauffeur: 'Ahmed Bennani', frais_base: 80 },
+                '2': { chauffeur: 'Mohamed Alami', frais_base: 120 },
+                '3': { chauffeur: 'Youssef Tazi', frais_base: 60 }
+            };
+            
+            if (vehicleData[selectedOption.value]) {
+                const data = vehicleData[selectedOption.value];
+                if (!chauffeurInput.value) {
+                    chauffeurInput.value = data.chauffeur;
+                }
+                if (!fraisInput.value) {
+                    fraisInput.value = data.frais_base;
+                }
+            }
+        }
+    });
+    
+    // Validation de la date
+    const dateInput = document.getElementById('{{ form.date_livraison.id_for_label }}');
+    const today = new Date();
+    const minDateTime = new Date(today.getTime() + 24 * 60 * 60 * 1000); // Minimum 24h
+    
+    dateInput.addEventListener('change', function() {
+        const selectedDate = new Date(this.value);
+        
+        if (selectedDate < minDateTime) {
+            this.style.borderColor = 'var(--warning-color)';
+            if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('date-warning')) {
+                const warning = document.createElement('div');
+                warning.className = 'date-warning';
+                warning.style.cssText = 'color: var(--warning-color); font-size: 0.75rem; margin-top: 0.25rem;';
+                warning.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Prévoir au moins 24h pour préparer la livraison';
+                this.parentNode.appendChild(warning);
+            }
+        } else {
+            this.style.borderColor = '';
+            const warning = this.parentNode.querySelector('.date-warning');
+            if (warning) {
+                warning.remove();
+            }
+        }
+    });
+    
+    // Définir la date minimale
+    const minDate = new Date(today.getTime() + 2 * 60 * 60 * 1000); // +2h pour éviter les problèmes de timezone
+    const minDateString = minDate.toISOString().slice(0, 16);
+    dateInput.setAttribute('min', minDateString);
+});
+</script>
+{% endblock %}

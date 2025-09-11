@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load stock_extras %}
+
+{% block title %}Rapport de Stock{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/stock.css' %}">
+
+<div class="page-header">
+    <h1><i class="fas fa-chart-bar"></i> Rapport de Stock</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'stock_dashboard' %}">Stock</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Rapport</span>
+    </div>
+</div>
+
+<!-- Statistiques générales -->
+<div class="stats-grid">
+    <div class="stat-card primary">
+        <h3>{{ stats.total_produits }}</h3>
+        <p>Produits Actifs</p>
+    </div>
+    <div class="stat-card success">
+        <h3>{{ stats.valeur_totale|floatformat:0 }}</h3>
+        <p>Valeur Totale (MAD)</p>
+    </div>
+    <div class="stat-card warning">
+        <h3>{{ stats.produits_alerte }}</h3>
+        <p>Produits en Alerte</p>
+    </div>
+    <div class="stat-card danger">
+        <h3>{{ stats.stock_zero }}</h3>
+        <p>Stock Zéro</p>
+    </div>
+</div>
+
+<!-- Mouvements du mois -->
+<div class="movements-section">
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-calendar"></i> Mouvements du Mois</h5>
+        </div>
+        <div class="card-body">
+            {% if mouvements_mois %}
+            <div class="movements-grid">
+                {% for mouvement in mouvements_mois %}
+                <div class="movement-item">
+                    <h4>{{ mouvement.total|floatformat:1 }}</h4>
+                    <p>{{ mouvement.get_type_mouvement_display|default:mouvement.type_mouvement }}</p>
+                    <small>{{ mouvement.count }} opérations</small>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                <i class="fas fa-calendar-times" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>Aucun mouvement ce mois</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Détail des produits -->
+<div class="card">
+    <div class="card-header flex justify-between align-center">
+        <h5><i class="fas fa-list"></i> Détail des Stocks</h5>
+        <div class="report-actions">
+            <a href="{% url 'rapport_stock_pdf' %}" class="btn btn-danger btn-sm">
+                <i class="fas fa-file-pdf"></i> PDF
+            </a>
+            <button onclick="window.print()" class="btn btn-success btn-sm">
+                <i class="fas fa-print"></i> Imprimer
+            </button>
+        </div>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        <div class="table-wrapper">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Type</th>
+                        <th>Prix Unitaire</th>
+                        <th>Stock Actuel</th>
+                        <th>Seuil Alerte</th>
+                        <th>Valeur Stock</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for produit in produits %}
+                    <tr {% if produit.quantite_stock <= produit.seuil_alerte %}class="alert"{% endif %}>
+                        <td><strong>{{ produit.code_produit }}</strong></td>
+                        <td>{{ produit.type }}</td>
+                        <td>{{ produit.prix }} MAD</td>
+                        <td>
+                            <span {% if produit.quantite_stock <= produit.seuil_alerte %}style="color: var(--danger-color); font-weight: 600;"{% endif %}>
+                                {{ produit.quantite_stock }} {{ produit.unite_mesure }}
+                            </span>
+                        </td>
+                        <td>{{ produit.seuil_alerte }} {{ produit.unite_mesure }}</td>
+                        <td><strong>{{ produit.quantite_stock|mul:produit.prix|currency }} MAD</strong></td>
+                        <td>
+                            {% if produit.quantite_stock <= produit.seuil_alerte %}
+                                <span class="status-badge alert">
+                                    <i class="fas fa-exclamation-triangle"></i> Alerte
+                                </span>
+                            {% elif produit.quantite_stock == 0 %}
+                                <span class="status-badge danger">
+                                    <i class="fas fa-times-circle"></i> Rupture
+                                </span>
+                            {% else %}
+                                <span class="status-badge ok">
+                                    <i class="fas fa-check-circle"></i> OK
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5"><strong>Total</strong></td>
+                        <td><strong>{{ stats.valeur_totale|currency }} MAD</strong></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

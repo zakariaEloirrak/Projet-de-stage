@@ -1,0 +1,439 @@
+{% extends 'base.html' %}
+
+{% block title %}Générer Facture - {{ commande.numero_commande }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .breadcrumb a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .form-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .invoice-preview {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .invoice-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--primary-color);
+    }
+
+    .company-info {
+        color: var(--primary-color);
+    }
+
+    .invoice-details {
+        text-align: right;
+    }
+
+    .invoice-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 2rem 0;
+    }
+
+    .items-table th,
+    .items-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .items-table th {
+        background: var(--primary-color);
+        color: white;
+        font-weight: 600;
+    }
+
+    .items-table tr:nth-child(even) {
+        background: rgba(37, 99, 235, 0.02);
+    }
+
+    .totals-section {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .total-row:last-child {
+        border-bottom: none;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: var(--primary-color);
+        border-top: 2px solid var(--primary-color);
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 0.875rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        background: #fafafa;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .error-message {
+        color: var(--danger-color);
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    @media (max-width: 768px) {
+        .invoice-header {
+            grid-template-columns: 1fr;
+            text-align: left;
+        }
+
+        .invoice-details {
+            text-align: left;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-actions > * {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-file-invoice"></i> Générer une Facture</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'commande_dashboard' %}">Commandes</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'liste_commandes' %}">Liste</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'detail_commande' commande.id %}">{{ commande.numero_commande }}</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Générer Facture</span>
+    </div>
+</div>
+
+<div class="form-container">
+    <!-- Aperçu de la facture -->
+    <div class="invoice-preview">
+        <div class="invoice-header">
+            <div class="company-info">
+                <h3>VOTRE ENTREPRISE</h3>
+                <p>Export/Import Poisson<br>
+                Adresse de votre entreprise<br>
+                Casablanca, Maroc<br>
+                Tél: +212 xxx xxx xxx</p>
+            </div>
+            <div class="invoice-details">
+                <div class="invoice-number">FACTURE</div>
+                <p><strong>N° :</strong> <span id="preview-numero">FAC{{ "now"|date:"YmdHis" }}</span></p>
+                <p><strong>Date :</strong> {{ "now"|date:"d/m/Y" }}</p>
+                <p><strong>Commande :</strong> {{ commande.numero_commande }}</p>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h4>Facturé à :</h4>
+            <div style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <strong>{{ commande.client.nom_societe }}</strong><br>
+                {{ commande.client.adresse|default:"Adresse non renseignée" }}<br>
+                {% if commande.client.numero_ice %}ICE: {{ commande.client.numero_ice }}<br>{% endif %}
+                {% if commande.client.numero_registre_commerce %}RC: {{ commande.client.numero_registre_commerce }}<br>{% endif %}
+                Email: {{ commande.client.email }}
+            </div>
+        </div>
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Quantité</th>
+                    <th>Prix Unitaire</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in lignes %}
+                <tr>
+                    <td>{{ ligne.poisson.type }}</td>
+                    <td>{{ ligne.quantite }} {{ ligne.poisson.unite_mesure }}</td>
+                    <td>{{ ligne.prix_unitaire }} MAD</td>
+                    <td>{{ ligne.total_ligne }} MAD</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-secondary);">
+                        Aucune ligne de commande
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="totals-section">
+            <div class="total-row">
+                <span>Sous-total HT :</span>
+                <span id="preview-ht">{{ montant_ht }} MAD</span>
+            </div>
+            <div class="total-row">
+                <span>TVA (<span id="preview-tva-rate">20</span>%) :</span>
+                <span id="preview-tva">{{ montant_ht|floatformat:2 }} MAD</span>
+            </div>
+            <div class="total-row">
+                <span>Total TTC :</span>
+                <span id="preview-ttc">{{ montant_ht|floatformat:2 }} MAD</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulaire de configuration -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-cog"></i> Configuration de la Facture</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" id="factureForm">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.taux_tva.id_for_label }}">
+                            <i class="fas fa-percentage"></i> Taux TVA (%) *
+                        </label>
+                        {{ form.taux_tva }}
+                        {% if form.taux_tva.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.taux_tva.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.date_echeance.id_for_label }}">
+                            <i class="fas fa-calendar"></i> Date d'Échéance *
+                        </label>
+                        {{ form.date_echeance }}
+                        {% if form.date_echeance.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.date_echeance.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.mode_paiement.id_for_label }}">
+                            <i class="fas fa-credit-card"></i> Mode de Paiement *
+                        </label>
+                        {{ form.mode_paiement }}
+                        {% if form.mode_paiement.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.mode_paiement.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.statut.id_for_label }}">
+                            <i class="fas fa-flag"></i> Statut *
+                        </label>
+                        {{ form.statut }}
+                        {% if form.statut.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.statut.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Montant HT (caché, calculé automatiquement) -->
+                <input type="hidden" id="{{ form.montant_ht.id_for_label }}" name="montant_ht" value="{{ montant_ht }}">
+                
+                <div class="form-actions">
+                    <a href="{% url 'detail_commande' commande.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-file-invoice"></i> Générer la Facture
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tauxTvaInput = document.getElementById('{{ form.taux_tva.id_for_label }}');
+    const montantHT = {{ montant_ht }};
+    
+    function updateTotals() {
+        const tauxTva = parseFloat(tauxTvaInput.value) || 0;
+        const montantTva = montantHT * (tauxTva / 100);
+        const montantTTC = montantHT + montantTva;
+        
+        document.getElementById('preview-tva-rate').textContent = tauxTva;
+        document.getElementById('preview-tva').textContent = montantTva.toFixed(2) + ' MAD';
+        document.getElementById('preview-ttc').textContent = montantTTC.toFixed(2) + ' MAD';
+    }
+    
+    // Mettre à jour les totaux quand le taux de TVA change
+    tauxTvaInput.addEventListener('input', updateTotals);
+    
+    // Calculer les totaux initiaux
+    updateTotals();
+    
+    // Validation de la date d'échéance
+    const dateEcheanceInput = document.getElementById('{{ form.date_echeance.id_for_label }}');
+    dateEcheanceInput.addEventListener('change', function() {
+        const selectedDate = new Date(this.value);
+        const today = new Date();
+        
+        if (selectedDate <= today) {
+            this.style.borderColor = 'var(--warning-color)';
+            if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('date-warning')) {
+                const warning = document.createElement('div');
+                warning.className = 'date-warning';
+                warning.style.cssText = 'color: var(--warning-color); font-size: 0.75rem; margin-top: 0.25rem;';
+                warning.innerHTML = '<i class="fas fa-exclamation-triangle"></i> La date d\'échéance devrait être dans le futur';
+                this.parentNode.appendChild(warning);
+            }
+        } else {
+            this.style.borderColor = '';
+            const warning = this.parentNode.querySelector('.date-warning');
+            if (warning) {
+                warning.remove();
+            }
+        }
+    });
+    
+    // Suggestions de délai selon le mode de paiement
+    const modePaiementSelect = document.getElementById('{{ form.mode_paiement.id_for_label }}');
+    modePaiementSelect.addEventListener('change', function() {
+        if (!dateEcheanceInput.value) {
+            const today = new Date();
+            let daysToAdd = 30; // Défaut
+            
+            switch (this.value) {
+                case 'especes':
+                    daysToAdd = 0;
+                    break;
+                case 'carte_bancaire':
+                    daysToAdd = 7;
+                    break;
+                case 'cheque':
+                    daysToAdd = 15;
+                    break;
+                case 'virement':
+                    daysToAdd = 30;
+                    break;
+            }
+            
+            const echeanceDate = new Date(today.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+            dateEcheanceInput.value = echeanceDate.toISOString().slice(0, 16);
+        }
+    });
+});
+</script>
+{% endblock %}

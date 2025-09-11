@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block title %}Modifier Ligne - {{ commande.numero_commande }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .breadcrumb a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 0.875rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        background: #fafafa;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .ligne-info {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 1px solid #f59e0b;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        color: #92400e;
+    }
+
+    .price-calculator {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 1px solid #22c55e;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        color: #166534;
+    }
+
+    .calc-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .calc-row:last-child {
+        margin-bottom: 0;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(22, 101, 52, 0.2);
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .error-message {
+        color: var(--danger-color);
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-actions > * {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-edit"></i> Modifier Ligne de Commande</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'commande_dashboard' %}">Commandes</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'liste_commandes' %}">Liste</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'detail_commande' commande.id %}">{{ commande.numero_commande }}</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Modifier Ligne</span>
+    </div>
+</div>
+
+<div class="form-container">
+    <!-- Informations de la ligne actuelle -->
+    <div class="ligne-info">
+        <h5><i class="fas fa-info-circle"></i> Ligne Actuelle</h5>
+        <div style="margin-top: 0.5rem;">
+            <strong>Produit:</strong> {{ ligne.poisson.type }} ({{ ligne.poisson.code_produit }}) <br>
+            <strong>Quantité actuelle:</strong> {{ ligne.quantite }} {{ ligne.poisson.unite_mesure }} <br>
+            <strong>Prix actuel:</strong> {{ ligne.prix_unitaire }} MAD <br>
+            <strong>Total actuel:</strong> {{ ligne.total_ligne }} MAD
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-edit"></i> Modifier la Ligne</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" id="ligneForm">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.poisson.id_for_label }}">
+                            <i class="fas fa-fish"></i> Produit *
+                        </label>
+                        {{ form.poisson }}
+                        {% if form.poisson.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.poisson.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.quantite.id_for_label }}">
+                            <i class="fas fa-weight"></i> Quantité *
+                        </label>
+                        {{ form.quantite }}
+                        {% if form.quantite.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.quantite.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.prix_unitaire.id_for_label }}">
+                        <i class="fas fa-euro-sign"></i> Prix Unitaire (MAD) *
+                    </label>
+                    {{ form.prix_unitaire }}
+                    {% if form.prix_unitaire.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.prix_unitaire.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Calculateur de prix -->
+                <div class="price-calculator" id="priceCalculator">
+                    <h6><i class="fas fa-calculator"></i> Nouveau Calcul</h6>
+                    <div class="calc-row">
+                        <span>Quantité:</span>
+                        <span id="calcQuantite">{{ ligne.quantite }}</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>Prix unitaire:</span>
+                        <span id="calcPrixUnitaire">{{ ligne.prix_unitaire }} MAD</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>Nouveau Total:</span>
+                        <span id="calcTotal">{{ ligne.total_ligne }} MAD</span>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{% url 'detail_commande' commande.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Modifier la Ligne
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const quantiteInput = document.getElementById('{{ form.quantite.id_for_label }}');
+    const prixUnitaireInput = document.getElementById('{{ form.prix_unitaire.id_for_label }}');
+    
+    function updateCalculator() {
+        const quantite = parseFloat(quantiteInput.value) || 0;
+        const prixUnitaire = parseFloat(prixUnitaireInput.value) || 0;
+        const total = quantite * prixUnitaire;
+        
+        document.getElementById('calcQuantite').textContent = `${quantite} {{ ligne.poisson.unite_mesure }}`;
+        document.getElementById('calcPrixUnitaire').textContent = `${prixUnitaire} MAD`;
+        document.getElementById('calcTotal').textContent = `${total.toFixed(2)} MAD`;
+    }
+    
+    // Event listeners
+    quantiteInput.addEventListener('input', updateCalculator);
+    prixUnitaireInput.addEventListener('input', updateCalculator);
+    
+    // Initialiser le calculateur
+    updateCalculator();
+});
+</script>
+{% endblock %}

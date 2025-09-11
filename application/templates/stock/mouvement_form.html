@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mouvement de Stock{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/stock.css' %}">
+
+<div class="page-header">
+    <h1><i class="fas fa-exchange-alt"></i> Nouveau Mouvement de Stock</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'stock_dashboard' %}">Stock</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Mouvement</span>
+    </div>
+</div>
+
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-plus-circle"></i> Enregistrer un Mouvement</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" id="mouvementForm">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.poisson.id_for_label }}">
+                            <i class="fas fa-fish"></i> Produit *
+                        </label>
+                        {{ form.poisson }}
+                        <div id="stock-info" class="stock-info" style="display: none;"></div>
+                        {% if form.poisson.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.poisson.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.type_mouvement.id_for_label }}">
+                            <i class="fas fa-arrows-alt"></i> Type de Mouvement *
+                        </label>
+                        {{ form.type_mouvement }}
+                        {% if form.type_mouvement.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.type_mouvement.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.quantite.id_for_label }}">
+                            <i class="fas fa-calculator"></i> Quantité *
+                        </label>
+                        {{ form.quantite }}
+                        {% if form.quantite.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.quantite.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.commande.id_for_label }}">
+                            <i class="fas fa-shopping-cart"></i> Commande (optionnel)
+                        </label>
+                        {{ form.commande }}
+                        {% if form.commande.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.commande.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.motif.id_for_label }}">
+                        <i class="fas fa-comment"></i> Motif
+                    </label>
+                    {{ form.motif }}
+                    {% if form.motif.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.motif.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Aide contextuelle -->
+                <div class="help-section">
+                    <h6><i class="fas fa-question-circle"></i> Types de Mouvements</h6>
+                    <ul>
+                        <li><strong>Entrée:</strong> Ajout de stock (livraison, production)</li>
+                        <li><strong>Sortie:</strong> Retrait de stock (vente, consommation)</li>
+                        <li><strong>Ajustement:</strong> Correction du stock (inventaire)</li>
+                        <li><strong>Retour:</strong> Retour de marchandise</li>
+                    </ul>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{% url 'stock_dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('id_poisson').addEventListener('change', function() {
+    const produitId = this.value;
+    const stockInfo = document.getElementById('stock-info');
+    
+    if (produitId) {
+        // Ici vous pourriez ajouter une requête AJAX pour récupérer les infos du stock
+        stockInfo.innerHTML = '<i class="fas fa-check-circle"></i> Stock sélectionné';
+        stockInfo.style.display = 'block';
+    } else {
+        stockInfo.style.display = 'none';
+    }
+});
+
+// Validation côté client
+document.getElementById('mouvementForm').addEventListener('submit', function(e) {
+    const typeMouvement = document.getElementById('id_type_mouvement').value;
+    const quantite = parseFloat(document.getElementById('id_quantite').value);
+    
+    if (typeMouvement === 'SORTIE' && quantite <= 0) {
+        e.preventDefault();
+        alert('La quantité doit être positive pour une sortie de stock.');
+        return false;
+    }
+});
+</script>
+{% endblock %}

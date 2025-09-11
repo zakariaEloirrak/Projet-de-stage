@@ -1,0 +1,166 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HAFSA SAMAC{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if request.session.user_id %}
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <img src="{% static 'images/image_logo.png' %}" alt="HAFSA SAMAC Logo" style="width: 60px; height: 60px;">
+                HAFSA SAMAC
+            </a>
+
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard' %}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-warehouse"></i> Stock
+                        <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="{% url 'stock_dashboard' %}">
+                            <i class="fas fa-chart-line"></i> Dashboard Stock
+                        </a>
+                        <a class="dropdown-item" href="{% url 'liste_produits' %}">
+                            <i class="fas fa-fish"></i> Produits
+                        </a>
+                        <a class="dropdown-item" href="{% url 'mouvement_stock_form' %}">
+                            <i class="fas fa-exchange-alt"></i> Nouveau Mouvement
+                        </a>
+                        <a class="dropdown-item" href="{% url 'historique_mouvements' %}">
+                            <i class="fas fa-history"></i> Historique
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{% url 'rapport_stock' %}">
+                            <i class="fas fa-chart-bar"></i> Rapports
+                        </a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-users"></i> Clients
+                        <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="{% url 'client_dashboard' %}">
+                            <i class="fas fa-chart-line"></i> Dashboard Clients
+                        </a>
+                        <a class="dropdown-item" href="{% url 'liste_clients' %}">
+                            <i class="fas fa-list"></i> Liste Clients
+                        </a>
+                        <a class="dropdown-item" href="{% url 'ajouter_client' %}">
+                            <i class="fas fa-plus"></i> Nouveau Client
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{% url 'rapport_clients_pdf' %}">
+                            <i class="fas fa-file-pdf"></i> Rapport PDF
+                        </a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-shopping-cart"></i> Commandes
+                        <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="{% url 'commande_dashboard' %}">
+                            <i class="fas fa-chart-line"></i> Dashboard Commandes
+                        </a>
+                        <a class="dropdown-item" href="{% url 'liste_commandes' %}">
+                            <i class="fas fa-list"></i> Liste Commandes
+                        </a>
+                        <a class="dropdown-item" href="{% url 'ajouter_commande' %}">
+                            <i class="fas fa-plus"></i> Nouvelle Commande
+                        </a>
+                        <a class="dropdown-item" href="{% url 'liste_factures' %}">
+                            <i class="fas fa-file-invoice"></i> Factures
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{% url 'rapport_commandes' %}">
+                            <i class="fas fa-chart-bar"></i> Rapports
+                        </a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-user"></i> {{ request.session.username }}
+                        <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="{% url 'profile' %}">
+                            <i class="fas fa-user-edit"></i> Profil
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{% url 'logout' %}">
+                            <i class="fas fa-sign-out-alt"></i> Déconnexion
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Toast Container -->
+    <div class="toast-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast {% if message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% endif %}">
+                    <i class="fas 
+                        {% if message.tags == 'error' %}fa-exclamation-circle
+                        {% elif message.tags == 'warning' %}fa-exclamation-triangle
+                        {% elif message.tags == 'success' %}fa-check-circle
+                        {% else %}fa-info-circle{% endif %}"></i>
+                    <span>{{ message }}</span>
+                    <button class="toast-close" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <main class="{% if request.session.user_id %}container{% endif %}">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        // Auto-remove toasts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                setTimeout(() => {
+                    toast.style.animation = 'slideOut 0.3s ease forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }, 5000);
+            });
+        });
+
+        // Add slideOut animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideOut {
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

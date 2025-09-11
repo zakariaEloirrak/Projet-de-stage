@@ -1,0 +1,535 @@
+{% extends 'base.html' %}
+
+{% block title %}Facture {{ facture.numero_facture }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .breadcrumb a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .invoice-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .invoice-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: var(--radius-lg);
+        margin-bottom: 2rem;
+    }
+
+    .invoice-header-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        align-items: center;
+    }
+
+    .invoice-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .invoice-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .invoice-status.brouillon {
+        background: rgba(107, 114, 128, 0.2);
+        color: #f3f4f6;
+    }
+
+    .invoice-status.emise {
+        background: rgba(37, 99, 235, 0.2);
+        color: #dbeafe;
+    }
+
+    .invoice-status.envoyee {
+        background: rgba(217, 119, 6, 0.2);
+        color: #fed7aa;
+    }
+
+    .invoice-status.payee {
+        background: rgba(5, 150, 105, 0.2);
+        color: #dcfce7;
+    }
+
+    .invoice-status.annulee {
+        background: rgba(220, 38, 38, 0.2);
+        color: #fecaca;
+    }
+
+    .invoice-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .detail-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+    }
+
+    .detail-card h5 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .detail-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .detail-table td {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .detail-table td:first-child {
+        font-weight: 500;
+        color: var(--text-primary);
+        width: 40%;
+    }
+
+    .detail-table td:last-child {
+        color: var(--text-secondary);
+    }
+
+    .items-section {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .items-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .items-table th,
+    .items-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .items-table th {
+        background: var(--primary-color);
+        color: white;
+        font-weight: 600;
+    }
+
+    .items-table tr:nth-child(even) {
+        background: rgba(37, 99, 235, 0.02);
+    }
+
+    .totals-section {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 1px solid var(--success-color);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(22, 101, 52, 0.2);
+        font-size: 1rem;
+    }
+
+    .total-row:last-child {
+        border-bottom: none;
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: var(--success-color);
+        border-top: 2px solid var(--success-color);
+        padding-top: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .actions-section {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        padding: 0.875rem 1.5rem;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .action-btn.primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+    }
+
+    .action-btn.success {
+        background: linear-gradient(135deg, var(--success-color) 0%, #047857 100%);
+        color: white;
+    }
+
+    .action-btn.warning {
+        background: linear-gradient(135deg, var(--warning-color) 0%, #b45309 100%);
+        color: white;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .payment-info {
+        background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+        border: 1px solid var(--warning-color);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        color: #92400e;
+    }
+
+    .payment-info h6 {
+        color: var(--warning-color);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .invoice-header-grid {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+
+        .invoice-details {
+            grid-template-columns: 1fr;
+        }
+
+        .actions-section {
+            flex-direction: column;
+        }
+
+        .action-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @media print {
+        .page-header,
+        .actions-section,
+        .navbar {
+            display: none !important;
+        }
+        
+        .invoice-container {
+            max-width: none;
+            margin: 0;
+        }
+        
+        .invoice-header {
+            background: #2563eb !important;
+            -webkit-print-color-adjust: exact;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-file-invoice"></i> Facture {{ facture.numero_facture }}</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'commande_dashboard' %}">Commandes</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'liste_factures' %}">Factures</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>{{ facture.numero_facture }}</span>
+    </div>
+</div>
+
+<div class="invoice-container">
+    <!-- En-tête de facture -->
+    <div class="invoice-header">
+        <div class="invoice-header-grid">
+            <div>
+                <div class="invoice-number">{{ facture.numero_facture }}</div>
+                <p>Date d'émission: {{ facture.date_emission|date:"d/m/Y" }}</p>
+                <p>Date d'échéance: {{ facture.date_echeance|date:"d/m/Y H:i" }}</p>
+                <div class="invoice-status {{ facture.statut }}">
+                    <i class="fas fa-circle"></i>
+                    {{ facture.get_statut_display }}
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <h3>VOTRE ENTREPRISE</h3>
+                <p>Export/Import Poisson<br>
+                Adresse de votre entreprise<br>
+                Casablanca, Maroc<br>
+                Tél: +212 xxx xxx xxx</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Détails client et commande -->
+    <div class="invoice-details">
+        <div class="detail-card">
+            <h5><i class="fas fa-user"></i> Facturé à</h5>
+            <div style="background: var(--background-color); padding: 1rem; border-radius: var(--radius-md);">
+                <strong>{{ facture.client.nom_societe }}</strong><br>
+                {{ facture.client.adresse|default:"Adresse non renseignée" }}<br>
+                {% if facture.client.numero_ice %}ICE: {{ facture.client.numero_ice }}<br>{% endif %}
+                {% if facture.client.numero_registre_commerce %}RC: {{ facture.client.numero_registre_commerce }}<br>{% endif %}
+                Email: {{ facture.client.email }}<br>
+                Tél: {{ facture.client.telephone|default:"Non renseigné" }}
+            </div>
+        </div>
+        
+        <div class="detail-card">
+            <h5><i class="fas fa-info-circle"></i> Détails de la Facture</h5>
+            <table class="detail-table">
+                <tr>
+                    <td>Commande liée:</td>
+                    <td>
+                        <a href="{% url 'detail_commande' facture.commande.id %}" style="color: var(--primary-color);">
+                            {{ facture.commande.numero_commande }}
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Mode de paiement:</td>
+                    <td>{{ facture.get_mode_paiement_display }}</td>
+                </tr>
+                <tr>
+                    <td>Taux TVA:</td>
+                    <td>{{ facture.taux_tva }}%</td>
+                </tr>
+                <tr>
+                    <td>Créée par:</td>
+                    <td>{{ facture.utilisateur_creation.username|default:"Système" }}</td>
+                </tr>
+                {% if facture.livraison %}
+                <tr>
+                    <td>Livraison:</td>
+                    <td>{{ facture.livraison.numero_livraison }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+
+    <!-- Articles facturés -->
+    <div class="items-section">
+        <div class="items-header">
+            <h5><i class="fas fa-list"></i> Articles Facturés</h5>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Code</th>
+                        <th>Quantité</th>
+                        <th>Prix Unitaire</th>
+                        <th>Total HT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in lignes %}
+                    <tr>
+                        <td>{{ ligne.poisson.type }}</td>
+                        <td>{{ ligne.poisson.code_produit }}</td>
+                        <td>{{ ligne.quantite }} {{ ligne.poisson.unite_mesure }}</td>
+                        <td>{{ ligne.prix_unitaire }} MAD</td>
+                        <td><strong>{{ ligne.total_ligne }} MAD</strong></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                            <i class="fas fa-inbox"></i><br>
+                            Aucun article facturé
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Totaux -->
+    <div class="totals-section">
+        <h5 style="color: var(--success-color); margin-bottom: 1rem;">
+            <i class="fas fa-calculator"></i> Récapitulatif
+        </h5>
+        <div class="total-row">
+            <span>Sous-total HT:</span>
+            <span>{{ facture.montant_ht }} MAD</span>
+        </div>
+        <div class="total-row">
+            <span>TVA ({{ facture.taux_tva }}%):</span>
+            <span>{{ facture.montant_tva }} MAD</span>
+        </div>
+        <div class="total-row">
+            <span>Total TTC:</span>
+            <span>{{ facture.montant_ttc }} MAD</span>
+        </div>
+    </div>
+
+    <!-- Informations de paiement -->
+    {% if facture.statut != 'payee' %}
+    <div class="payment-info">
+        <h6><i class="fas fa-credit-card"></i> Informations de Paiement</h6>
+        <p><strong>Mode de paiement:</strong> {{ facture.get_mode_paiement_display }}</p>
+        <p><strong>Date d'échéance:</strong> {{ facture.date_echeance|date:"d/m/Y à H:i" }}</p>
+        {% if facture.date_echeance|date:"Y-m-d" < "now"|date:"Y-m-d" %}
+            <p style="color: var(--danger-color);"><i class="fas fa-exclamation-triangle"></i> 
+            <strong>Attention:</strong> Cette facture est en retard de paiement.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="actions-section">
+        <a href="{% url 'liste_factures' %}" class="action-btn primary">
+            <i class="fas fa-list"></i> Liste des Factures
+        </a>
+        
+        <a href="{% url 'telecharger_facture_pdf' facture.id %}" class="action-btn success">
+            <i class="fas fa-file-pdf"></i> Télécharger PDF
+        </a>
+        
+        <a href="{% url 'detail_commande' facture.commande.id %}" class="action-btn warning">
+            <i class="fas fa-shopping-cart"></i> Voir la Commande
+        </a>
+        
+        {% if facture.statut != 'payee' and facture.statut != 'annulee' %}
+        <button onclick="marquerCommePaye()" class="action-btn success">
+            <i class="fas fa-check"></i> Marquer comme Payée
+        </button>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function marquerCommePaye() {
+    if (confirm('Êtes-vous sûr de vouloir marquer cette facture comme payée ?')) {
+        // En production, vous feriez un appel AJAX pour mettre à jour le statut
+        alert('Fonctionnalité à implémenter : mise à jour du statut de paiement');
+    }
+}
+
+// Raccourci clavier pour télécharger PDF
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'p') {
+        e.preventDefault();
+        window.location.href = "{% url 'telecharger_facture_pdf' facture.id %}";
+    }
+});
+</script>
+{% endblock %}
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+            .invoice-header { background: #2563eb !important; color: white !important; padding: 2rem; border-radius: 10px; margin-bottom: 2rem; }
+            .invoice-header-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center; }
+            .invoice-number { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+            .invoice-status { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.875rem; font-weight: 500; gap: 0.5rem; margin-top: 1rem; background: rgba(255,255,255,0.2); color: white; }
+            .invoice-details { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+            .detail-card { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.5rem; }
+            .detail-card h5 { color: #2563eb; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+            .items-table { width: 100%; border-collapse: collapse; margin: 2rem 0; }
+            .items-table th, .items-table td { padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
+            .items-table th { background: #2563eb; color: white; font-weight: 600; }
+            .items-table tr:nth-child(even) { background: rgba(37, 99, 235, 0.02); }
+            .totals-section { background: #f0fdf4; border: 1px solid #22c55e; border-radius: 10px; padding: 2rem; margin-bottom: 2rem; }
+            .total-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid rgba(22, 101, 52, 0.2); font-size: 1rem; }
+            .total-row:last-child { border-bottom: none; font-weight: 700; font-size: 1.5rem; color: #22c55e; border-top: 2px solid #22c55e; padding-top: 1.5rem; margin-top: 1rem; }
+        </style>
+    `;
+    
+    // Écrire le contenu dans la nouvelle fenêtre
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Facture ${facture.numero_facture}</title>
+            ${pdfStyles}
+        </head>
+        <body>
+            ${factureContent}
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    
+    // Attendre que le contenu soit chargé puis déclencher l'impression
+    printWindow.onload = function() {
+        printWindow.print();
+        printWindow.onafterprint = function() {
+            printWindow.close();
+        };
+    };
+}
+
+// Raccourci clavier pour télécharger PDF
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'p') {
+        e.preventDefault();
+        telechargerPDF();
+    }
+});
+</script>

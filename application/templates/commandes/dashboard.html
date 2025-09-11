@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Commandes{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="{% static 'css/commandes/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-shopping-cart"></i> Dashboard Commandes</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Commandes</span>
+    </div>
+</div>
+
+<!-- Statistiques principales -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-content">
+            <div class="stat-info">
+                <h5>Total Commandes</h5>
+                <h2>{{ total_commandes }}</h2>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stat-card warning">
+        <div class="stat-content">
+            <div class="stat-info">
+                <h5>En Cours</h5>
+                <h2>{{ commandes_en_cours }}</h2>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stat-card success">
+        <div class="stat-content">
+            <div class="stat-info">
+                <h5>Livrées</h5>
+                <h2>{{ commandes_livrees }}</h2>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stat-card info">
+        <div class="stat-content">
+            <div class="stat-info">
+                <h5>CA Total</h5>
+                <h2>{{ ca_total|floatformat:0 }} MAD</h2>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="card">
+    <div class="card-header">
+        <h5><i class="fas fa-bolt"></i> Actions Rapides</h5>
+    </div>
+    <div class="card-body">
+        <div class="actions-grid">
+            <a href="{% url 'ajouter_commande' %}" class="action-card">
+                <i class="fas fa-plus"></i>
+                <h6>Nouvelle Commande</h6>
+            </a>
+            <a href="{% url 'liste_commandes' %}" class="action-card">
+                <i class="fas fa-list"></i>
+                <h6>Liste Commandes</h6>
+            </a>
+            <a href="{% url 'liste_factures' %}" class="action-card">
+                <i class="fas fa-file-invoice"></i>
+                <h6>Factures</h6>
+            </a>
+            <a href="{% url 'rapport_commandes' %}" class="action-card">
+                <i class="fas fa-chart-bar"></i>
+                <h6>Rapports</h6>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="content-grid">
+    <!-- Évolution CA -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-chart-line"></i> Évolution du Chiffre d'Affaires</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="caChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Répartition par statut -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-chart-pie"></i> Répartition par Statut</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="statutChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Commandes récentes -->
+<div class="card">
+    <div class="card-header flex justify-between align-center">
+        <h5><i class="fas fa-clock"></i> Commandes Récentes</h5>
+        <a href="{% url 'liste_commandes' %}" class="btn btn-primary btn-sm">
+            Voir tout
+        </a>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        {% if commandes_recentes %}
+        <div style="overflow-x: auto;">
+            <table class="recent-table">
+                <thead>
+                    <tr>
+                        <th>N° Commande</th>
+                        <th>Client</th>
+                        <th>Type</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for commande in commandes_recentes %}
+                    <tr>
+                        <td><strong>{{ commande.numero_commande }}</strong></td>
+                        <td>{{ commande.client.nom_societe }}</td>
+                        <td>
+                            <span class="badge badge-primary">{{ commande.get_type_commande_display }}</span>
+                        </td>
+                        <td>
+                            <span class="status-badge {{ commande.statut|lower }}">
+                                {{ commande.get_statut_display }}
+                            </span>
+                        </td>
+                        <td>{{ commande.date_creation|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'detail_commande' commande.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <i class="fas fa-shopping-cart" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+            <p>Aucune commande récente</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Graphique CA mensuel
+const caData = {{ ca_mensuel|safe }};
+const ctxCA = document.getElementById('caChart').getContext('2d');
+
+new Chart(ctxCA, {
+    type: 'line',
+    data: {
+        labels: caData.map(item => item.mois),
+        datasets: [{
+            label: 'Chiffre d\'Affaires (MAD)',
+            data: caData.map(item => item.ca),
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value.toLocaleString() + ' MAD';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Graphique répartition par statut
+const statutData = {{ stats_statut|safe }};
+const ctxStatut = document.getElementById('statutChart').getContext('2d');
+
+new Chart(ctxStatut, {
+    type: 'doughnut',
+    data: {
+        labels: statutData.map(item => item.statut),
+        datasets: [{
+            data: statutData.map(item => item.count),
+            backgroundColor: [
+                '#6b7280', // BROUILLON
+                '#2563eb', // CONFIRMEE
+                '#d97706', // PREPARATION
+                '#0ea5e9', // EXPEDIEE
+                '#059669', // LIVREE
+                '#dc2626'  // ANNULEE
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,372 @@
+/* ========================================
+   CSS SPÉCIFIQUE POUR LES FACTURES
+   ======================================== */
+
+/* Import du CSS principal des commandes */
+@import url('commandes.css');
+
+/* ========================================
+   FACTURES SPÉCIFIQUES
+   ======================================== */
+
+.factures-table,
+.invoices-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--commande-surface);
+}
+
+.factures-table th,
+.invoices-table th {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--commande-text-primary);
+    border-bottom: 2px solid var(--commande-border);
+}
+
+.factures-table td,
+.invoices-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--commande-border);
+    vertical-align: middle;
+}
+
+.factures-table tr:hover,
+.invoices-table tr:hover {
+    background: rgba(37, 99, 235, 0.02);
+}
+
+.facture-number,
+.invoice-number {
+    font-family: 'Courier New', monospace;
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--commande-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--commande-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.factures-header,
+.invoices-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.factures-count,
+.invoices-count {
+    color: var(--commande-text-secondary);
+    font-size: 0.875rem;
+}
+
+/* ========================================
+   STATUTS DE FACTURE
+   ======================================== */
+
+.status-badge.emise {
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--commande-primary);
+}
+
+.status-badge.envoyee {
+    background: rgba(217, 119, 6, 0.1);
+    color: var(--commande-warning);
+}
+
+.status-badge.payee {
+    background: rgba(5, 150, 105, 0.1);
+    color: var(--commande-success);
+}
+
+.status-badge.impayee {
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--commande-danger);
+}
+
+/* ========================================
+   MONTANTS ET FINANCIER
+   ======================================== */
+
+.amount-highlight {
+    font-weight: 600;
+    color: var(--commande-success);
+}
+
+.overdue {
+    color: var(--commande-danger);
+    font-weight: 500;
+}
+
+.total-amount {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--commande-success);
+}
+
+/* ========================================
+   GÉNÉRATION DE FACTURE
+   ======================================== */
+
+.invoice-preview {
+    background: var(--commande-surface);
+    border: 1px solid var(--commande-border);
+    border-radius: var(--commande-radius-lg);
+    padding: 2rem;
+    margin: 2rem 0;
+}
+
+.invoice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--commande-border);
+}
+
+.invoice-company {
+    flex: 1;
+}
+
+.invoice-company h3 {
+    color: var(--commande-primary);
+    margin-bottom: 0.5rem;
+}
+
+.invoice-details {
+    text-align: right;
+}
+
+.invoice-number-large {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--commande-primary);
+    margin-bottom: 0.5rem;
+}
+
+.invoice-date {
+    color: var(--commande-text-secondary);
+    font-size: 0.875rem;
+}
+
+.invoice-client {
+    background: var(--commande-bg);
+    padding: 1rem;
+    border-radius: var(--commande-radius-md);
+    margin-bottom: 2rem;
+}
+
+.invoice-client h4 {
+    color: var(--commande-text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.invoice-items {
+    margin-bottom: 2rem;
+}
+
+.invoice-items table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.invoice-items th {
+    background: var(--commande-bg);
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--commande-text-primary);
+    border-bottom: 1px solid var(--commande-border);
+}
+
+.invoice-items td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--commande-border);
+}
+
+.invoice-totals {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.invoice-totals table {
+    width: 300px;
+}
+
+.invoice-totals td {
+    padding: 0.5rem 1rem;
+    text-align: right;
+}
+
+.invoice-totals .total-label {
+    font-weight: 600;
+    color: var(--commande-text-primary);
+}
+
+.invoice-totals .total-amount {
+    font-weight: 700;
+    color: var(--commande-success);
+    font-size: 1.125rem;
+}
+
+/* ========================================
+   DÉTAIL DE FACTURE
+   ======================================== */
+
+.invoice-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.invoice-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--commande-border);
+}
+
+.invoice-status-section {
+    background: var(--commande-bg);
+    padding: 1.5rem;
+    border-radius: var(--commande-radius-lg);
+    border: 1px solid var(--commande-border);
+}
+
+.invoice-status-section h5 {
+    color: var(--commande-text-primary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.invoice-status-section h5 i {
+    color: var(--commande-primary);
+}
+
+/* ========================================
+   RAPPORTS DE FACTURES
+   ======================================== */
+
+.report-filters {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid var(--commande-border);
+    border-radius: var(--commande-radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.report-filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.report-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.report-summary-card {
+    background: var(--commande-surface);
+    border: 1px solid var(--commande-border);
+    border-radius: var(--commande-radius-lg);
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.report-summary-card h4 {
+    color: var(--commande-text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.report-summary-card .amount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--commande-success);
+}
+
+.report-summary-card .count {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--commande-primary);
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+    .invoice-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .invoice-details {
+        text-align: left;
+    }
+
+    .invoice-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .invoice-actions {
+        flex-direction: column;
+    }
+
+    .invoice-actions > * {
+        width: 100%;
+    }
+
+    .report-filters-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .invoice-totals table {
+        width: 100%;
+    }
+}
+
+/* ========================================
+   IMPRESSION
+   ======================================== */
+
+@media print {
+    .invoice-preview {
+        border: none;
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .invoice-actions {
+        display: none;
+    }
+
+    .page-header {
+        display: none;
+    }
+
+    .breadcrumb {
+        display: none;
+    }
+
+    .btn {
+        display: none;
+    }
+}

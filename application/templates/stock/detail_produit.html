@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load stock_filters %}
+
+{% block title %}{{ produit.type }} - Détails Produit{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/stock.css' %}">
+
+<div class="page-header">
+    <h1><i class="fas fa-fish"></i> {{ produit.type }}</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'stock_dashboard' %}">Stock</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'liste_produits' %}">Produits</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>{{ produit.type }}</span>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <!-- Informations du produit -->
+    <div class="product-info">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> Informations Produit</h5>
+            </div>
+            <div class="card-body">
+                <table class="info-table">
+                    <tr>
+                        <td>Code</td>
+                        <td><strong>{{ produit.code_produit }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Type</td>
+                        <td>{{ produit.type }}</td>
+                    </tr>
+                    <tr>
+                        <td>Prix unitaire</td>
+                        <td><strong>{{ produit.prix }} MAD</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Stock actuel</td>
+                        <td>
+                            <span {% if est_en_alerte %}style="color: var(--danger-color); font-weight: 600;"{% endif %}>
+                                {{ produit.quantite_stock }} {{ produit.unite_mesure }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Seuil d'alerte</td>
+                        <td>{{ produit.seuil_alerte }} {{ produit.unite_mesure }}</td>
+                    </tr>
+                    <tr>
+                        <td>Valeur stock</td>
+                        <td><strong>{{ produit.quantite_stock|mul:produit.prix|currency }} MAD</strong></td>
+                    </tr>
+                </table>
+                
+                {% if est_en_alerte %}
+                <div class="alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Alerte!</strong><br>
+                        Stock en dessous du seuil d'alerte.
+                    </div>
+                </div>
+                {% endif %}
+                
+                <button type="button" class="quick-action-btn" onclick="quickMovement()">
+                    <i class="fas fa-exchange-alt"></i> Mouvement Rapide
+                </button>
+            </div>
+        </div>
+        
+        <!-- Statistiques -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Statistiques</h5>
+            </div>
+            <div class="card-body">
+                <div class="stats-grid">
+                    <div class="stat-item entries">
+                        <div class="stat-value success">{{ total_entrees }}</div>
+                        <div class="stat-label">Total Entrées</div>
+                    </div>
+                    <div class="stat-item exits">
+                        <div class="stat-value danger">{{ total_sorties }}</div>
+                        <div class="stat-label">Total Sorties</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mouvements récents -->
+    <div class="movements-section">
+        <div class="card">
+            <div class="card-header">
+                <div class="section-header">
+                    <h5><i class="fas fa-history"></i> Mouvements Récents</h5>
+                    <a href="{% url 'historique_mouvements' %}?produit={{ produit.id }}" class="btn btn-primary btn-sm">
+                        Voir tout
+                    </a>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                {% if mouvements %}
+                <div style="overflow-x: auto;">
+                    <table class="movements-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Quantité</th>
+                                <th>Utilisateur</th>
+                                <th>Motif</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mouvement in mouvements %}
+                            <tr>
+                                <td>{{ mouvement.date_mouvement|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <span class="movement-badge 
+                                        {% if mouvement.type_mouvement == 'ENTREE' %}entry
+                                        {% elif mouvement.type_mouvement == 'SORTIE' %}exit
+                                        {% elif mouvement.type_mouvement == 'AJUSTEMENT' %}adjustment
+                                        {% else %}return{% endif %}">
+                                        {{ mouvement.get_type_mouvement_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="quantity-text {% if mouvement.type_mouvement == 'SORTIE' %}negative{% elif mouvement.type_mouvement == 'ENTREE' %}positive{% endif %}">
+                                        {% if mouvement.type_mouvement == 'SORTIE' %}-{% endif %}{{ mouvement.quantite }} {{ produit.unite_mesure }}
+                                    </span>
+                                </td>
+                                <td>{{ mouvement.utilisateur.username }}</td>
+                                <td>{{ mouvement.motif|truncatechars:30|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-movements">
+                    <i class="fas fa-history"></i>
+                    <h5>Aucun mouvement</h5>
+                    <p>Aucun mouvement enregistré pour ce produit</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal mouvement rapide -->
+<div id="quickMovementModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5>Mouvement Rapide - {{ produit.type }}</h5>
+            <button type="button" class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form method="post" action="{% url 'mouvement_stock_form' %}" class="modal-form">
+            {% csrf_token %}
+            <input type="hidden" name="poisson" value="{{ produit.id }}">
+            
+            <div class="form-group">
+                <label>Type de mouvement</label>
+                <select name="type_mouvement" required>
+                    <option value="">Choisir...</option>
+                    <option value="ENTREE">Entrée</option>
+                    <option value="SORTIE">Sortie</option>
+                    <option value="AJUSTEMENT">Ajustement</option>
+                    <option value="RETOUR">Retour</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Quantité</label>
+                <input type="number" name="quantite" step="0.01" min="0" required>
+                <small style="color: var(--text-secondary);">Stock actuel: {{ produit.quantite_stock }} {{ produit.unite_mesure }}</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Motif</label>
+                <textarea name="motif" rows="2" placeholder="Motif du mouvement..."></textarea>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function quickMovement() {
+    document.getElementById('quickMovementModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('quickMovementModal').classList.remove('show');
+}
+
+// Close modal on background click
+document.getElementById('quickMovementModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+</script>
+{% endblock %}

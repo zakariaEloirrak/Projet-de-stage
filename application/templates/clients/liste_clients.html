@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Liste des Clients{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clients/dashboard.css' %}">
+<style>
+/* Page header alignment to match dashboard.css */
+.row.mb-4 h1 { margin: 0; display: flex; align-items: center; gap: 0.75rem; }
+.row.mb-4 h1 i { color: var(--primary-color, #2563eb); }
+
+/* Form controls spacing */
+.g-3 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1rem; }
+.g-3 .col-md-4 { grid-column: span 4; }
+.g-3 .col-md-3 { grid-column: span 3; }
+.g-3 .col-md-2 { grid-column: span 2; }
+@media (max-width: 992px) {
+  .g-3 .col-md-4, .g-3 .col-md-3, .g-3 .col-md-2 { grid-column: span 12; }
+}
+
+/* Buttons variants used on the page */
+.btn-outline-secondary { background: #ffffff; color: #1f2937; border: 1px solid var(--border-color, #e5e7eb); }
+.btn-outline-info { background: #ffffff; color: #0ea5e9; border: 1px solid #0ea5e9; }
+.btn-outline-primary { background: #ffffff; color: #2563eb; border: 1px solid #2563eb; }
+.btn-outline-danger { background: #ffffff; color: #dc2626; border: 1px solid #dc2626; }
+.btn-outline-secondary:hover { background: #f9fafb; }
+.btn-outline-info:hover { background: rgba(14,165,233,.08); }
+.btn-outline-primary:hover { background: rgba(37,99,235,.08); }
+.btn-outline-danger:hover { background: rgba(220,38,38,.08); }
+
+/* Button group */
+.btn-group { display: inline-flex; gap: .5rem; }
+.btn-group .btn { border-radius: .5rem; }
+
+/* Badges mapping to role types */
+.badge.bg-light { background: #f3f4f6; }
+.badge.text-dark { color: #111827; }
+.badge.bg-success { background: rgba(5,150,105,.1); color: #059669; }
+.badge.bg-info { background: rgba(14,165,233,.1); color: #0ea5e9; }
+
+/* Table tweaks */
+.table.table-hover tbody tr:hover { background: rgba(37, 99, 235, 0.03); }
+.table th, .table td { vertical-align: middle; }
+
+/* Breadcrumb styling aligned with dashboard.css */
+.breadcrumb { display: flex; align-items: center; gap: .5rem; color: var(--text-secondary, #6b7280); font-size: .875rem; margin-top: .5rem; }
+.breadcrumb a { color: var(--primary-color, #2563eb); text-decoration: none; }
+.breadcrumb .breadcrumb-item + .breadcrumb-item::before { content: '/'; margin: 0 .5rem; color: #9ca3af; }
+.breadcrumb .active { color: #9ca3af; }
+
+/* Pagination (Bootstrap-like) */
+.pagination { display: flex; list-style: none; gap: .5rem; padding-left: 0; margin: 1rem 0 0; }
+.page-item { display: inline-flex; }
+.page-link { display: inline-flex; align-items: center; justify-content: center; padding: .5rem .75rem; border: 1px solid var(--border-color, #e5e7eb); border-radius: .5rem; background: #fff; color: #374151; text-decoration: none; min-width: 2.25rem; }
+.page-item.active .page-link { background: var(--primary-color, #2563eb); border-color: var(--primary-color, #2563eb); color: #fff; }
+.page-link:hover { background: #f9fafb; }
+
+/* Modal minimal visual (note: JS is handled elsewhere) */
+.modal .modal-dialog { max-width: 500px; margin: 1.75rem auto; }
+.modal .modal-content { background: #fff; border: 1px solid var(--border-color, #e5e7eb); border-radius: .75rem; box-shadow: var(--shadow-md, 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1)); overflow: hidden; }
+.modal .modal-header, .modal .modal-footer { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color, #e5e7eb); }
+.modal .modal-footer { border-top: 1px solid var(--border-color, #e5e7eb); border-bottom: 0; display: flex; justify-content: flex-end; gap: .5rem; }
+.modal .modal-title { margin: 0; font-weight: 600; color: var(--text-primary, #1f2937); }
+.modal .modal-body { padding: 1rem 1.25rem; }
+.btn-close { background: none; border: 0; cursor: pointer; color: #6b7280; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1><i class="fas fa-users"></i> Liste des Clients</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'client_dashboard' %}">Clients</a></li>
+                <li class="breadcrumb-item active">Liste</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Rechercher</label>
+                <input type="text" name="search" class="form-control" 
+                       placeholder="Nom, email, code ou ICE..." value="{{ search }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Type</label>
+                <select name="role" class="form-select">
+                    <option value="">Tous</option>
+                    <option value="CLIENT" {% if role_filter == 'CLIENT' %}selected{% endif %}>Acheteur</option>
+                    <option value="FOURNISSEUR" {% if role_filter == 'FOURNISSEUR' %}selected{% endif %}>Fournisseur</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Pays</label>
+                <select name="pays" class="form-select">
+                    <option value="">Tous les pays</option>
+                    {% for pays in pays_list %}
+                    <option value="{{ pays }}" {% if pays_filter == pays %}selected{% endif %}>
+                        {{ pays|default:"Non spécifié" }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-search"></i> Filtrer
+                </button>
+                <a href="{% url 'liste_clients' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Liste des clients -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between">
+        <h5><i class="fas fa-list"></i> Clients ({{ page_obj.paginator.count }})</h5>
+        <div>
+            <a href="{% url 'ajouter_client' %}" class="btn btn-success btn-sm">
+                <i class="fas fa-plus"></i> Nouveau Client
+            </a>
+            <a href="{% url 'rapport_clients_pdf' %}" class="btn btn-secondary btn-sm">
+                <i class="fas fa-file-pdf"></i> PDF
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if page_obj %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Société</th>
+                        <th>Email</th>
+                        <th>Téléphone</th>
+                        <th>Pays</th>
+                        <th>Type</th>
+                        <th>Date Création</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in page_obj %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-light text-dark">{{ client.code_client }}</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'detail_client' client.id %}" class="text-decoration-none">
+                                <strong>{{ client.nom_societe }}</strong>
+                            </a>
+                        </td>
+                        <td>{{ client.email }}</td>
+                        <td>{{ client.telephone|default:"-" }}</td>
+                        <td>{{ client.pays|default:"N/A" }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if client.role == 'CLIENT' %}bg-success
+                                {% else %}bg-info{% endif %}">
+                                {{ client.get_role_display }}
+                            </span>
+                        </td>
+                        <td>{{ client.date_creation|date:"d/m/Y" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'detail_client' client.id %}" 
+                                   class="btn btn-outline-info" title="Détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'modifier_client' client.id %}" 
+                                   class="btn btn-outline-primary" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" 
+                                        onclick="confirmerDesactivation({{ client.id }}, '{{ client.nom_societe }}')"
+                                        title="Désactiver">
+                                    <i class="fas fa-ban"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Pagination">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if pays_filter %}&pays={{ pays_filter }}{% endif %}">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if pays_filter %}&pays={{ pays_filter }}{% endif %}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">
+                        Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if pays_filter %}&pays={{ pays_filter }}{% endif %}">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if pays_filter %}&pays={{ pays_filter }}{% endif %}">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Aucun client trouvé</h5>
+            <a href="{% url 'ajouter_client' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Ajouter le premier client
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal de confirmation de désactivation -->
+<div class="modal fade" id="confirmDesactivationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmer la désactivation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir désactiver le client <strong id="clientName"></strong> ?</p>
+                <p class="text-muted">Cette action peut être annulée en réactivant le client.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form id="desactivationForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Désactiver</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmerDesactivation(clientId, clientNom) {
+    document.getElementById('clientName').textContent = clientNom;
+    document.getElementById('desactivationForm').action = `/clients/${clientId}/desactiver/`;
+    new bootstrap.Modal(document.getElementById('confirmDesactivationModal')).show();
+}
+</script>
+{% endblock %}

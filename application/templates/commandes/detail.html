@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ commande.numero_commande }} - Détails{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/commandes/commandes.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-shopping-cart"></i> Commande {{ commande.numero_commande }}</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'commande_dashboard' %}">Commandes</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'liste_commandes' %}">Liste</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>{{ commande.numero_commande }}</span>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <!-- Informations de la commande -->
+    <div>
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> Informations Commande</h5>
+            </div>
+            <div class="card-body">
+                <table class="info-table">
+                    <tr>
+                        <td>N° Commande:</td>
+                        <td><strong>{{ commande.numero_commande }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Client:</td>
+                        <td>{{ commande.client.nom_societe }}</td>
+                    </tr>
+                    <tr>
+                        <td>Type:</td>
+                        <td>{{ commande.get_type_commande_display }}</td>
+                    </tr>
+                    <tr>
+                        <td>Statut:</td>
+                        <td>
+                            <span class="status-badge {{ commande.statut|lower }}">
+                                {{ commande.get_statut_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Date Création:</td>
+                        <td>{{ commande.date_creation|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <td>Date Expédition:</td>
+                        <td>
+                            {% if commande.date_expedition %}
+                                {{ commande.date_expedition|date:"d/m/Y" }}
+                            {% else %}
+                                <span style="color: var(--commande-text-secondary);">Non définie</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Incoterm:</td>
+                        <td>{{ commande.incoterm|default:"Non défini" }}</td>
+                    </tr>
+                    {% if commande.commentaire %}
+                    <tr>
+                        <td>Commentaire:</td>
+                        <td>{{ commande.commentaire }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        <!-- Actions rapides -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-bolt"></i> Actions Rapides</h5>
+            </div>
+            <div class="card-body">
+                <div class="status-actions">
+                    <form method="post" class="status-form">
+                        {% csrf_token %}
+                        <select name="nouveau_statut">
+                            <option value="">Changer le statut</option>
+                            <option value="brouillon">Brouillon</option>
+                            <option value="confirmee">Confirmée</option>
+                            <option value="preparation">En préparation</option>
+                            <option value="expediee">Expédiée</option>
+                            <option value="livree">Livrée</option>
+                            <option value="annulee">Annulée</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-save"></i> Mettre à jour
+                        </button>
+                    </form>
+                </div>
+                
+                <div style="margin-top: 1rem;">
+                    <a href="{% url 'modifier_commande' commande.id %}" class="btn btn-warning btn-sm" style="width: 100%; margin-bottom: 0.5rem;">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                    <a href="{% url 'ajouter_ligne_commande' commande.id %}" class="btn btn-success btn-sm" style="width: 100%; margin-bottom: 0.5rem;">
+                        <i class="fas fa-plus"></i> Ajouter Ligne
+                    </a>
+                    <a href="{% url 'generer_facture' commande.id %}" class="btn btn-primary btn-sm" style="width: 100%; margin-bottom: 0.5rem;">
+                        <i class="fas fa-file-invoice"></i> Générer Facture
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div>
+        <!-- Lignes de commande -->
+        <div class="lignes-section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="lignes-header">
+                        <h5><i class="fas fa-list"></i> Lignes de Commande</h5>
+                        <a href="{% url 'ajouter_ligne_commande' commande.id %}" class="btn btn-success btn-sm">
+                            <i class="fas fa-plus"></i> Ajouter
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    {% if commande.lignes.all %}
+                    <div style="overflow-x: auto;">
+                        <table class="lignes-table">
+                            <thead>
+                                <tr>
+                                    <th>Produit</th>
+                                    <th>Quantité</th>
+                                    <th>Prix Unitaire</th>
+                                    <th>Total</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ligne in commande.lignes.all %}
+                                <tr>
+                                    <td>{{ ligne.produit.nom }}</td>
+                                    <td>{{ ligne.quantite }}</td>
+                                    <td>{{ ligne.prix_unitaire|floatformat:2 }} MAD</td>
+                                    <td class="ligne-total">{{ ligne.total|floatformat:2 }} MAD</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="{% url 'modifier_ligne_commande' ligne.id %}" class="action-btn" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'supprimer_ligne_commande' ligne.id %}" class="action-btn" title="Supprimer">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr style="background: var(--commande-bg); font-weight: 600;">
+                                    <td colspan="3"><strong>Total Commande:</strong></td>
+                                    <td><strong>{{ commande.total|floatformat:2 }} MAD</strong></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-list"></i>
+                        <h5>Aucune ligne de commande</h5>
+                        <p>Commencez par ajouter des produits à cette commande</p>
+                        <a href="{% url 'ajouter_ligne_commande' commande.id %}" class="btn btn-primary" style="margin-top: 1rem;">
+                            <i class="fas fa-plus"></i> Ajouter une ligne
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents -->
+        <div class="documents-section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="documents-header">
+                        <h5><i class="fas fa-file-alt"></i> Documents</h5>
+                        <a href="{% url 'ajouter_document' commande.id %}" class="btn btn-success btn-sm">
+                            <i class="fas fa-plus"></i> Ajouter
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if commande.documents.all %}
+                    <div class="documents-list">
+                        {% for document in commande.documents.all %}
+                        <div class="document-item">
+                            <div class="document-info">
+                                <div class="document-name">{{ document.nom }}</div>
+                                <div class="document-meta">
+                                    Ajouté le {{ document.date_creation|date:"d/m/Y H:i" }}
+                                    {% if document.fichier %}
+                                        - {{ document.fichier.size|filesizeformat }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="document-actions">
+                                {% if document.fichier %}
+                                <a href="{{ document.fichier.url }}" class="btn btn-primary btn-sm" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'supprimer_document' document.id %}" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-file-alt"></i>
+                        <h5>Aucun document</h5>
+                        <p>Ajoutez des documents à cette commande</p>
+                        <a href="{% url 'ajouter_document' commande.id %}" class="btn btn-primary" style="margin-top: 1rem;">
+                            <i class="fas fa-plus"></i> Ajouter un document
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Livraisons -->
+        <div class="livraisons-section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="livraisons-header">
+                        <h5><i class="fas fa-truck"></i> Livraisons</h5>
+                        <a href="{% url 'ajouter_livraison' commande.id %}" class="btn btn-success btn-sm">
+                            <i class="fas fa-plus"></i> Ajouter
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if commande.livraisons.all %}
+                    <div class="livraisons-list">
+                        {% for livraison in commande.livraisons.all %}
+                        <div class="livraison-item">
+                            <div class="livraison-info">
+                                <div class="livraison-name">{{ livraison.nom }}</div>
+                                <div class="livraison-meta">
+                                    Créée le {{ livraison.date_creation|date:"d/m/Y H:i" }}
+                                    {% if livraison.date_livraison %}
+                                        - Livrée le {{ livraison.date_livraison|date:"d/m/Y" }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="livraison-actions">
+                                <a href="#" class="btn btn-primary btn-sm" title="Détail livraison (à implémenter)">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="#" class="btn btn-warning btn-sm" title="Modifier livraison (à implémenter)">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-truck"></i>
+                        <h5>Aucune livraison</h5>
+                        <p>Créez une livraison pour cette commande</p>
+                        <a href="{% url 'ajouter_livraison' commande.id %}" class="btn btn-primary" style="margin-top: 1rem;">
+                            <i class="fas fa-plus"></i> Créer une livraison
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

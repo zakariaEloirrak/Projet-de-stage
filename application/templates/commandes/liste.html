@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Liste des Commandes{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/commandes/commandes.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-shopping-cart"></i> Liste des Commandes</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'commande_dashboard' %}">Commandes</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Liste</span>
+    </div>
+</div>
+
+<!-- Filtres et recherche -->
+<div class="filter-section">
+    <form method="get">
+        <div class="filter-grid">
+            <div class="filter-group">
+                <label>Rechercher</label>
+                <input type="text" name="search" placeholder="N° commande, client..." value="{{ search }}">
+            </div>
+            
+            <div class="filter-group">
+                <label>Statut</label>
+                <select name="statut">
+                    <option value="">Tous</option>
+                    {% for code, label in statuts %}
+                    <option value="{{ code }}" {% if statut_filter == code %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Type</label>
+                <select name="type">
+                    <option value="">Tous</option>
+                    {% for code, label in types %}
+                    <option value="{{ code }}" {% if type_filter == code %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Client</label>
+                <select name="client">
+                    <option value="">Tous</option>
+                    {% for client in clients %}
+                    <option value="{{ client.id }}" {% if client_filter == client.id|stringformat:"s" %}selected{% endif %}>
+                        {{ client.nom_societe }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Période</label>
+                <div style="display: flex; gap: 0.25rem;">
+                    <input type="date" name="date_debut" value="{{ date_debut }}" style="flex: 1;">
+                    <input type="date" name="date_fin" value="{{ date_fin }}" style="flex: 1;">
+                </div>
+            </div>
+        </div>
+        
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> Filtrer
+            </button>
+            <a href="{% url 'liste_commandes' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Reset
+            </a>
+            <a href="{% url 'ajouter_commande' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Nouvelle Commande
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Liste des commandes -->
+<div class="card">
+    <div class="card-header">
+        <div class="orders-header">
+            <h5><i class="fas fa-list"></i> Commandes</h5>
+            <div class="orders-count">({{ page_obj.paginator.count }} commandes)</div>
+        </div>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        {% if page_obj %}
+        <div style="overflow-x: auto;">
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>N° Commande</th>
+                        <th>Client</th>
+                        <th>Type</th>
+                        <th>Statut</th>
+                        <th>Date Création</th>
+                        <th>Date Expédition</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for commande in page_obj %}
+                    <tr>
+                        <td>
+                            <span class="order-number">{{ commande.numero_commande }}</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'detail_commande' commande.id %}" class="client-link">
+                                {{ commande.client.nom_societe }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="type-badge {{ commande.type_commande|lower }}">
+                                {{ commande.get_type_commande_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge {{ commande.statut|lower }}">
+                                {{ commande.get_statut_display }}
+                            </span>
+                        </td>
+                        <td>{{ commande.date_creation|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            {% if commande.date_expedition %}
+                                {{ commande.date_expedition|date:"d/m/Y" }}
+                            {% else %}
+                                <span style="color: var(--text-secondary);">Non définie</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'detail_commande' commande.id %}" class="action-btn" title="Détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'modifier_commande' commande.id %}" class="action-btn" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'generer_facture' commande.id %}" class="action-btn" title="Facturer">
+                                    <i class="fas fa-file-invoice"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% if search %}&search={{ search }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if client_filter %}&client={{ client_filter }}{% endif %}{% if date_debut %}&date_debut={{ date_debut }}{% endif %}{% if date_fin %}&date_fin={{ date_fin }}{% endif %}">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if client_filter %}&client={{ client_filter }}{% endif %}{% if date_debut %}&date_debut={{ date_debut }}{% endif %}{% if date_fin %}&date_fin={{ date_fin }}{% endif %}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            {% endif %}
+            
+            <span class="current">
+                Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if client_filter %}&client={{ client_filter }}{% endif %}{% if date_debut %}&date_debut={{ date_debut }}{% endif %}{% if date_fin %}&date_fin={{ date_fin }}{% endif %}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if client_filter %}&client={{ client_filter }}{% endif %}{% if date_debut %}&date_debut={{ date_debut }}{% endif %}{% if date_fin %}&date_fin={{ date_fin }}{% endif %}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-shopping-cart"></i>
+            <h5>Aucune commande trouvée</h5>
+            <p>Commencez par créer votre première commande</p>
+            <a href="{% url 'ajouter_commande' %}" class="btn btn-primary" style="margin-top: 1rem;">
+                <i class="fas fa-plus"></i> Créer une commande
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

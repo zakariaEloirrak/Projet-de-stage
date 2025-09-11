@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ajouter un Produit - Stock{% endblock %}
+
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/stock.css' %}">
+
+<div class="page-header">
+    <h1><i class="fas fa-plus"></i> Ajouter un Produit</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'stock_dashboard' %}">Stock</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'liste_produits' %}">Produits</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Ajouter</span>
+    </div>
+</div>
+
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-fish"></i> Nouveau Produit</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.type.id_for_label }}">
+                            <i class="fas fa-tag"></i> Type de Poisson *
+                        </label>
+                        {{ form.type }}
+                        {% if form.type.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.type.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.prix.id_for_label }}">
+                            <i class="fas fa-money-bill"></i> Prix Unitaire (MAD) *
+                        </label>
+                        {{ form.prix }}
+                        {% if form.prix.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.prix.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-grid three-cols">
+                    <div class="form-group">
+                        <label for="{{ form.quantite_stock.id_for_label }}">
+                            <i class="fas fa-boxes"></i> Quantité Initiale *
+                        </label>
+                        {{ form.quantite_stock }}
+                        {% if form.quantite_stock.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.quantite_stock.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.unite_mesure.id_for_label }}">
+                            <i class="fas fa-weight"></i> Unité de Mesure *
+                        </label>
+                        {{ form.unite_mesure }}
+                        {% if form.unite_mesure.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.unite_mesure.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.seuil_alerte.id_for_label }}">
+                            <i class="fas fa-exclamation-triangle"></i> Seuil d'Alerte *
+                        </label>
+                        {{ form.seuil_alerte }}
+                        {% if form.seuil_alerte.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.seuil_alerte.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="help-text">
+                            Quantité minimale avant alerte
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Information:</strong> Si vous saisissez une quantité initiale supérieure à 0, 
+                    un mouvement d'entrée sera automatiquement créé dans l'historique.
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{% url 'liste_produits' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

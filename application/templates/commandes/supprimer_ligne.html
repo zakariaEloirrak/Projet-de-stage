@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer Ligne - {{ ligne.commande.numero_commande }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .breadcrumb a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .form-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .warning-section {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        border: 1px solid #dc2626;
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        color: #991b1b;
+    }
+
+    .warning-icon {
+        font-size: 4rem;
+        color: var(--danger-color);
+        margin-bottom: 1rem;
+    }
+
+    .ligne-details {
+        background: var(--background-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .detail-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .detail-table td {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .detail-table td:first-child {
+        font-weight: 600;
+        color: var(--text-primary);
+        width: 40%;
+    }
+
+    .detail-table td:last-child {
+        color: var(--text-secondary);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-trash"></i> Supprimer Ligne de Commande</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'commande_dashboard' %}">Commandes</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'liste_commandes' %}">Liste</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'detail_commande' ligne.commande.id %}">{{ ligne.commande.numero_commande }}</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Supprimer Ligne</span>
+    </div>
+</div>
+
+<div class="form-container">
+    <div class="card">
+        <div class="card-body">
+            <div class="warning-section">
+                <div class="warning-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h4>Attention !</h4>
+                <p>Êtes-vous sûr de vouloir supprimer cette ligne de commande ?</p>
+                <p><strong>Cette action est irréversible.</strong></p>
+            </div>
+
+            <div class="ligne-details">
+                <h5><i class="fas fa-info-circle"></i> Détails de la Ligne à Supprimer</h5>
+                <table class="detail-table">
+                    <tr>
+                        <td>Commande :</td>
+                        <td><strong>{{ ligne.commande.numero_commande }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Client :</td>
+                        <td>{{ ligne.commande.client.nom_societe }}</td>
+                    </tr>
+                    <tr>
+                        <td>Produit :</td>
+                        <td>{{ ligne.poisson.type }} ({{ ligne.poisson.code_produit }})</td>
+                    </tr>
+                    <tr>
+                        <td>Quantité :</td>
+                        <td>{{ ligne.quantite }} {{ ligne.poisson.unite_mesure }}</td>
+                    </tr>
+                    <tr>
+                        <td>Prix Unitaire :</td>
+                        <td>{{ ligne.prix_unitaire }} MAD</td>
+                    </tr>
+                    <tr>
+                        <td>Total Ligne :</td>
+                        <td><strong>{{ ligne.total_ligne }} MAD</strong></td>
+                    </tr>
+                </table>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-actions">
+                    <a href="{% url 'detail_commande' ligne.commande.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Confirmer la Suppression
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

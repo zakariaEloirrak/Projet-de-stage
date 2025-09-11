@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ajouter un Produit - {{ commande.numero_commande }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/commandes/commandes.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-plus"></i> Ajouter un Produit</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'commande_dashboard' %}">Commandes</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'liste_commandes' %}">Liste</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'detail_commande' commande.id %}">{{ commande.numero_commande }}</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Ajouter Produit</span>
+    </div>
+</div>
+
+<div class="form-container">
+    <!-- Informations de la commande -->
+    <div class="commande-info">
+        <h5><i class="fas fa-info-circle"></i> Commande {{ commande.numero_commande }}</h5>
+        <div style="margin-top: 0.5rem;">
+            <strong>Client:</strong> {{ commande.client.nom_societe }} <br>
+            <strong>Type:</strong> {{ commande.get_type_commande_display }} <br>
+            <strong>Statut:</strong> {{ commande.get_statut_display }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-plus"></i> Ajouter un Produit</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" id="ligneForm">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    <div class="form-group product-search">
+                        <label for="{{ form.produit.id_for_label }}">
+                            <i class="fas fa-box"></i> Produit *
+                        </label>
+                        {{ form.produit }}
+                        {% if form.produit.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.produit.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.quantite.id_for_label }}">
+                            <i class="fas fa-hashtag"></i> Quantité *
+                        </label>
+                        {{ form.quantite }}
+                        {% if form.quantite.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.quantite.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.prix_unitaire.id_for_label }}">
+                            <i class="fas fa-coins"></i> Prix Unitaire (MAD) *
+                        </label>
+                        {{ form.prix_unitaire }}
+                        {% if form.prix_unitaire.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.prix_unitaire.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.remise.id_for_label }}">
+                            <i class="fas fa-percentage"></i> Remise (%)
+                        </label>
+                        {{ form.remise }}
+                        {% if form.remise.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.remise.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="{{ form.commentaire.id_for_label }}">
+                        <i class="fas fa-comment"></i> Commentaire
+                    </label>
+                    {{ form.commentaire }}
+                    {% if form.commentaire.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.commentaire.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{% url 'detail_commande' commande.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Ajouter le Produit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Liste des Factures{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/commandes/factures.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-file-invoice"></i> Liste des Factures</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'commande_dashboard' %}">Commandes</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Factures</span>
+    </div>
+</div>
+
+<!-- Filtres et recherche -->
+<div class="filter-section">
+    <form method="get">
+        <div class="filter-grid">
+            <div class="filter-group">
+                <label>Rechercher</label>
+                <input type="text" name="search" placeholder="N° facture, client..." value="{{ search }}">
+            </div>
+            
+            <div class="filter-group">
+                <label>Statut</label>
+                <select name="statut">
+                    <option value="">Tous</option>
+                    <option value="brouillon" {% if statut_filter == 'brouillon' %}selected{% endif %}>Brouillon</option>
+                    <option value="emise" {% if statut_filter == 'emise' %}selected{% endif %}>Émise</option>
+                    <option value="envoyee" {% if statut_filter == 'envoyee' %}selected{% endif %}>Envoyée</option>
+                    <option value="payee" {% if statut_filter == 'payee' %}selected{% endif %}>Payée</option>
+                    <option value="annulee" {% if statut_filter == 'annulee' %}selected{% endif %}>Annulée</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Client</label>
+                <select name="client">
+                    <option value="">Tous</option>
+                    {% regroup page_obj.object_list by client as grouped_clients %}
+                    {% for client_group in grouped_clients %}
+                        <option value="{{ client_group.grouper.id }}" {% if client_filter == client_group.grouper.id|stringformat:"s" %}selected{% endif %}>
+                            {{ client_group.grouper.nom_societe }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> Filtrer
+            </button>
+            <a href="{% url 'liste_factures' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Liste des factures -->
+<div class="card">
+    <div class="card-header">
+        <div class="invoices-header">
+            <h5><i class="fas fa-file-invoice"></i> Factures</h5>
+            <div class="invoices-count">({{ page_obj.paginator.count }} factures)</div>
+        </div>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        {% if page_obj %}
+        <div style="overflow-x: auto;">
+            <table class="invoices-table">
+                <thead>
+                    <tr>
+                        <th>N° Facture</th>
+                        <th>Client</th>
+                        <th>Commande</th>
+                        <th>Date Émission</th>
+                        <th>Date Échéance</th>
+                        <th>Montant TTC</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for facture in page_obj %}
+                    <tr>
+                        <td>
+                            <span class="invoice-number">{{ facture.numero_facture }}</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'detail_facture' facture.id %}" class="client-link">
+                                {{ facture.client.nom_societe }}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{% url 'detail_commande' facture.commande.id %}" style="color: var(--primary-color); text-decoration: none;">
+                                {{ facture.commande.numero_commande }}
+                            </a>
+                        </td>
+                        <td>{{ facture.date_emission|date:"d/m/Y" }}</td>
+                        <td>
+                            {% if facture.date_echeance|date:"Y-m-d" < "now"|date:"Y-m-d" and facture.statut != 'payee' %}
+                                <span class="overdue">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    {{ facture.date_echeance|date:"d/m/Y" }}
+                                </span>
+                            {% else %}
+                                {{ facture.date_echeance|date:"d/m/Y" }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="amount-highlight">{{ facture.montant_ttc }} MAD</span>
+                        </td>
+                        <td>
+                            <span class="status-badge {{ facture.statut }}">
+                                <i class="fas fa-circle"></i>
+                                {{ facture.get_statut_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'detail_facture' facture.id %}" class="action-btn" title="Détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'telecharger_facture_pdf' facture.id %}" class="action-btn" title="Télécharger PDF">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                                <a href="{% url 'detail_commande' facture.commande.id %}" class="action-btn" title="Voir Commande">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% if search %}&search={{ search }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if client_filter %}&client={{ client_filter }}{% endif %}">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if client_filter %}&client={{ client_filter }}{% endif %}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            {% endif %}
+            
+            <span class="current">
+                Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if client_filter %}&client={{ client_filter }}{% endif %}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if client_filter %}&client={{ client_filter }}{% endif %}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-file-invoice"></i>
+            <h5>Aucune facture trouvée</h5>
+            <p>Les factures générées s'afficheront ici</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function telechargerFacturePDF(factureId) {
+    // Ouvrir la page de détail de la facture et déclencher le téléchargement PDF
+    const factureUrl = `/factures/${factureId}/`;
+    const printWindow = window.open(factureUrl, '_blank');
+    
+    printWindow.onload = function() {
+        // Attendre un peu que la page se charge complètement
+        setTimeout(function() {
+            printWindow.print();
+            printWindow.onafterprint = function() {
+                printWindow.close();
+            };
+        }, 1000);
+    };
+}
+</script>
+{% endblock %}

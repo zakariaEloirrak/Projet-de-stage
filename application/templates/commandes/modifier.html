@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Modifier Commande - {{ commande.numero_commande }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/commandes/commandes.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-edit"></i> Modifier Commande</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'commande_dashboard' %}">Commandes</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'liste_commandes' %}">Liste</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'detail_commande' commande.id %}">{{ commande.numero_commande }}</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Modifier</span>
+    </div>
+</div>
+
+<div class="form-container">
+    <!-- Informations actuelles -->
+    <div class="commande-info">
+        <h5><i class="fas fa-info-circle"></i> Commande {{ commande.numero_commande }}</h5>
+        <div style="margin-top: 0.5rem;">
+            <strong>Statut actuel:</strong> {{ commande.get_statut_display }} <br>
+            <strong>Date de création:</strong> {{ commande.date_creation|date:"d/m/Y H:i" }} <br>
+            <strong>Client:</strong> {{ commande.client.nom_societe }} <br>
+            <strong>Type:</strong> {{ commande.get_type_commande_display }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-edit"></i> Modifier les Informations</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.type_commande.id_for_label }}">
+                            <i class="fas fa-tag"></i> Type de Commande *
+                        </label>
+                        {{ form.type_commande }}
+                        {% if form.type_commande.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.type_commande.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.client.id_for_label }}">
+                            <i class="fas fa-user"></i> Client *
+                        </label>
+                        {{ form.client }}
+                        {% if form.client.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.client.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.date_expedition.id_for_label }}">
+                            <i class="fas fa-calendar"></i> Date d'Expédition
+                        </label>
+                        {{ form.date_expedition }}
+                        {% if form.date_expedition.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.date_expedition.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.incoterm.id_for_label }}">
+                            <i class="fas fa-shipping-fast"></i> Incoterm
+                        </label>
+                        {{ form.incoterm }}
+                        {% if form.incoterm.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.incoterm.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="{{ form.commentaire.id_for_label }}">
+                        <i class="fas fa-comment"></i> Commentaire
+                    </label>
+                    {{ form.commentaire }}
+                    {% if form.commentaire.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.commentaire.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{% url 'detail_commande' commande.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Enregistrer les Modifications
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

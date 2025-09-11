@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nouvelle Commande{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/commandes/commandes.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-plus"></i> Nouvelle Commande</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'commande_dashboard' %}">Commandes</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'liste_commandes' %}">Liste</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Nouvelle</span>
+    </div>
+</div>
+
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-shopping-cart"></i> Créer une Commande</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.type_commande.id_for_label }}">
+                            <i class="fas fa-tag"></i> Type de Commande *
+                        </label>
+                        {{ form.type_commande }}
+                        {% if form.type_commande.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.type_commande.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.client.id_for_label }}">
+                            <i class="fas fa-user"></i> Client *
+                        </label>
+                        {{ form.client }}
+                        {% if form.client.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.client.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.date_expedition.id_for_label }}">
+                            <i class="fas fa-calendar"></i> Date d'Expédition
+                        </label>
+                        {{ form.date_expedition }}
+                        {% if form.date_expedition.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.date_expedition.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.incoterm.id_for_label }}">
+                            <i class="fas fa-shipping-fast"></i> Incoterm
+                        </label>
+                        {{ form.incoterm }}
+                        {% if form.incoterm.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.incoterm.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="{{ form.commentaire.id_for_label }}">
+                        <i class="fas fa-comment"></i> Commentaire
+                    </label>
+                    {{ form.commentaire }}
+                    {% if form.commentaire.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.commentaire.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="info-section">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Information:</strong> Un numéro de commande unique sera automatiquement généré. 
+                    Après création, vous pourrez ajouter des lignes de produits à cette commande.
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{% url 'liste_commandes' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Créer la Commande
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,443 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajouter Étape Transport - {{ commande.numero_commande }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .breadcrumb a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .form-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 0.875rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        background: #fafafa;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .commande-info {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 1px solid #0ea5e9;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        color: #0369a1;
+    }
+
+    .transport-modes {
+        background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+        border: 1px solid #f59e0b;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        color: #92400e;
+    }
+
+    .mode-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .mode-card {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .mode-card:hover {
+        background: rgba(245, 158, 11, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .mode-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: var(--warning-color);
+    }
+
+    .cost-calculator {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 1px solid #22c55e;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        color: #166534;
+    }
+
+    .calc-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .calc-row:last-child {
+        margin-bottom: 0;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(22, 101, 52, 0.2);
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .error-message {
+        color: var(--danger-color);
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .mode-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-actions > * {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-truck"></i> Ajouter Étape de Transport</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'commande_dashboard' %}">Commandes</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'liste_commandes' %}">Liste</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'detail_commande' commande.id %}">{{ commande.numero_commande }}</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Ajouter Transport</span>
+    </div>
+</div>
+
+<div class="form-container">
+    <!-- Informations de la commande -->
+    <div class="commande-info">
+        <h5><i class="fas fa-info-circle"></i> Commande {{ commande.numero_commande }}</h5>
+        <div style="margin-top: 0.5rem;">
+            <strong>Client:</strong> {{ commande.client.nom_societe }} <br>
+            <strong>Type:</strong> {{ commande.get_type_commande_display }} <br>
+            <strong>Statut:</strong> {{ commande.get_statut_display }} <br>
+            <strong>Date d'expédition:</strong> 
+            {% if commande.date_expedition %}
+                {{ commande.date_expedition|date:"d/m/Y" }}
+            {% else %}
+                Non définie
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-shipping-fast"></i> Nouvelle Étape de Transport</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" id="transportForm">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.mode_transport.id_for_label }}">
+                            <i class="fas fa-truck"></i> Mode de Transport *
+                        </label>
+                        {{ form.mode_transport }}
+                        {% if form.mode_transport.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.mode_transport.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.transporteur.id_for_label }}">
+                            <i class="fas fa-building"></i> Transporteur *
+                        </label>
+                        {{ form.transporteur }}
+                        {% if form.transporteur.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.transporteur.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.date_depart.id_for_label }}">
+                            <i class="fas fa-calendar"></i> Date de Départ *
+                        </label>
+                        {{ form.date_depart }}
+                        {% if form.date_depart.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.date_depart.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.FraisTransport.id_for_label }}">
+                            <i class="fas fa-money-bill"></i> Frais de Transport (MAD) *
+                        </label>
+                        {{ form.FraisTransport }}
+                        {% if form.FraisTransport.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.FraisTransport.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.num_conteneur.id_for_label }}">
+                            <i class="fas fa-box"></i> Numéro de Conteneur
+                        </label>
+                        {{ form.num_conteneur }}
+                        {% if form.num_conteneur.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.num_conteneur.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                            Pour transport maritime ou terrestre
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.numero_suivi.id_for_label }}">
+                            <i class="fas fa-search"></i> Numéro de Suivi
+                        </label>
+                        {{ form.numero_suivi }}
+                        {% if form.numero_suivi.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.numero_suivi.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                            Numéro de tracking du transporteur
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modes de transport -->
+                <div class="transport-modes">
+                    <h6><i class="fas fa-info-circle"></i> Modes de Transport Disponibles</h6>
+                    <div class="mode-grid">
+                        <div class="mode-card">
+                            <div class="mode-icon">
+                                <i class="fas fa-ship"></i>
+                            </div>
+                            <h6>Bateau</h6>
+                            <p style="font-size: 0.875rem; margin: 0;">Transport maritime économique pour gros volumes</p>
+                        </div>
+                        <div class="mode-card">
+                            <div class="mode-icon">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <h6>Camion</h6>
+                            <p style="font-size: 0.875rem; margin: 0;">Transport terrestre rapide et flexible</p>
+                        </div>
+                        <div class="mode-card">
+                            <div class="mode-icon">
+                                <i class="fas fa-plane"></i>
+                            </div>
+                            <h6>Avion</h6>
+                            <p style="font-size: 0.875rem; margin: 0;">Transport aérien ultra-rapide pour urgences</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calculateur de coûts -->
+                <div class="cost-calculator" id="costCalculator" style="display: none;">
+                    <h6><i class="fas fa-calculator"></i> Estimation des Coûts</h6>
+                    <div class="calc-row">
+                        <span>Mode de transport:</span>
+                        <span id="calcMode">-</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>Transporteur:</span>
+                        <span id="calcTransporteur">-</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>Frais de transport:</span>
+                        <span id="calcFrais">0 MAD</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>Total estimé:</span>
+                        <span id="calcTotal">0 MAD</span>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{% url 'detail_commande' commande.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Ajouter l'Étape
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modeSelect = document.getElementById('{{ form.mode_transport.id_for_label }}');
+    const transporteurSelect = document.getElementById('{{ form.transporteur.id_for_label }}');
+    const fraisInput = document.getElementById('{{ form.FraisTransport.id_for_label }}');
+    const costCalculator = document.getElementById('costCalculator');
+    
+    function updateCalculator() {
+        const mode = modeSelect.options[modeSelect.selectedIndex].text;
+        const transporteur = transporteurSelect.options[transporteurSelect.selectedIndex].text;
+        const frais = parseFloat(fraisInput.value) || 0;
+        
+        if (modeSelect.value && transporteurSelect.value) {
+            document.getElementById('calcMode').textContent = mode;
+            document.getElementById('calcTransporteur').textContent = transporteur;
+            document.getElementById('calcFrais').textContent = `${frais} MAD`;
+            document.getElementById('calcTotal').textContent = `${frais} MAD`;
+            
+            costCalculator.style.display = 'block';
+        } else {
+            costCalculator.style.display = 'none';
+        }
+    }
+    
+    // Suggestions de prix par mode
+    const priceSuggestions = {
+        'BATEAU': 500,
+        'CAMION': 1200,
+        'AVION': 3000
+    };
+    
+    modeSelect.addEventListener('change', function() {
+        if (this.value && priceSuggestions[this.value] && !fraisInput.value) {
+            fraisInput.value = priceSuggestions[this.value];
+        }
+        updateCalculator();
+    });
+    
+    transporteurSelect.addEventListener('change', updateCalculator);
+    fraisInput.addEventListener('input', updateCalculator);
+    
+    // Validation des dates
+    const dateInput = document.getElementById('{{ form.date_depart.id_for_label }}');
+    dateInput.addEventListener('change', function() {
+        const selectedDate = new Date(this.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < today) {
+            this.style.borderColor = 'var(--warning-color)';
+            if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('date-warning')) {
+                const warning = document.createElement('div');
+                warning.className = 'date-warning';
+                warning.style.cssText = 'color: var(--warning-color); font-size: 0.75rem; margin-top: 0.25rem;';
+                warning.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Date dans le passé';
+                this.parentNode.appendChild(warning);
+            }
+        } else {
+            this.style.borderColor = '';
+            const warning = this.parentNode.querySelector('.date-warning');
+            if (warning) {
+                warning.remove();
+            }
+        }
+    });
+    
+    // Définir la date minimale à aujourd'hui
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.setAttribute('min', today);
+});
+</script>
+{% endblock %}

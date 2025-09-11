@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load stock_extras %}
+
+{% block title %}Liste des Produits - Stock{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/stock.css' %}">
+
+<div class="page-header">
+    <h1><i class="fas fa-fish"></i> Liste des Produits</h1>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{% url 'stock_dashboard' %}">Stock</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Produits</span>
+    </div>
+</div>
+
+<!-- Filtres et recherche -->
+<div class="filter-section">
+    <form method="get">
+        <div class="filter-grid">
+            <div class="filter-group">
+                <label>Rechercher</label>
+                <input type="text" name="search" placeholder="Type ou code produit..." value="{{ search }}">
+            </div>
+            
+            <div class="filter-group">
+                <label>Filtres</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="alerte" value="1" {% if alerte_only %}checked{% endif %}>
+                        <label>Produits en alerte</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="stock_faible" value="1" {% if stock_faible %}checked{% endif %}>
+                        <label>Stock faible (&lt; 10)</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Filtrer
+                </button>
+                <a href="{% url 'liste_produits' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Reset
+                </a>
+            </div>
+            
+            <div class="filter-group">
+                <a href="{% url 'ajouter_produit' %}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Nouveau
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Liste des produits -->
+<div class="card">
+    <div class="card-header">
+        <div class="products-header">
+            <h5><i class="fas fa-list"></i> Produits</h5>
+            <div class="products-count">({{ produits.count }} produits)</div>
+        </div>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        {% if produits %}
+        <div style="overflow-x: auto;">
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Type</th>
+                        <th>Prix Unitaire</th>
+                        <th>Stock Actuel</th>
+                        <th>Seuil Alerte</th>
+                        <th>Valeur Stock</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for produit in produits %}
+                    <tr {% if produit.quantite_stock <= produit.seuil_alerte %}class="alert"{% endif %}>
+                        <td>
+                            <span class="product-code">{{ produit.code_produit }}</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'detail_produit' produit.id %}" class="product-link">
+                                {{ produit.type }}
+                            </a>
+                        </td>
+                        <td>{{ produit.prix }} MAD</td>
+                        <td>
+                            <span {% if produit.quantite_stock <= produit.seuil_alerte %}class="stock-warning"{% endif %}>
+                                {{ produit.quantite_stock }} {{ produit.unite_mesure }}
+                            </span>
+                        </td>
+                        <td>{{ produit.seuil_alerte }} {{ produit.unite_mesure }}</td>
+                        <td><strong>{{ produit.quantite_stock|mul:produit.prix|currency }} MAD</strong></td>
+                        <td>
+                            {% if produit.quantite_stock <= produit.seuil_alerte %}
+                                <span class="status-badge alert">
+                                    <i class="fas fa-exclamation-triangle"></i> Alerte
+                                </span>
+                            {% elif produit.quantite_stock == 0 %}
+                                <span class="status-badge out-of-stock">Rupture</span>
+                            {% else %}
+                                <span class="status-badge available">
+                                    <i class="fas fa-check-circle"></i> Disponible
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'detail_produit' produit.id %}" class="action-btn info" title="Détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="action-btn" onclick="quickMovement({{ produit.id }}, '{{ produit.type }}')" title="Mouvement rapide">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-box-open"></i>
+            <h5>Aucun produit trouvé</h5>
+            <p>Commencez par ajouter votre premier produit</p>
+            <a href="{% url 'ajouter_produit' %}" class="btn btn-primary" style="margin-top: 1rem;">
+                <i class="fas fa-plus"></i> Ajouter le premier produit
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal mouvement rapide -->
+<div id="quickMovementModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5>Mouvement Rapide</h5>
+            <button type="button" class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="quickMovementForm" method="post" action="{% url 'mouvement_stock_form' %}" class="modal-form">
+            {% csrf_token %}
+            <input type="hidden" id="quick_produit_id" name="poisson">
+            
+            <div class="form-group">
+                <label>Produit</label>
+                <input type="text" id="quick_produit_name" readonly style="background: #f8fafc;">
+            </div>
+            
+            <div class="form-group">
+                <label>Type de mouvement</label>
+                <select name="type_mouvement" required>
+                    <option value="">Choisir...</option>
+                    <option value="ENTREE">Entrée</option>
+                    <option value="SORTIE">Sortie</option>
+                    <option value="AJUSTEMENT">Ajustement</option>
+                    <option value="RETOUR">Retour</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Quantité</label>
+                <input type="number" name="quantite" step="0.01" min="0" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Motif</label>
+                <textarea name="motif" rows="2" placeholder="Motif du mouvement..."></textarea>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function quickMovement(produitId, produitName) {
+    document.getElementById('quick_produit_id').value = produitId;
+    document.getElementById('quick_produit_name').value = produitName;
+    document.getElementById('quickMovementModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('quickMovementModal').classList.remove('show');
+}
+
+// Close modal on background click
+document.getElementById('quickMovementModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+</script>
+{% endblock %}
