@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: pro2-django
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: gunicorn proj.wsgi:application --log-file -
+    postDeployCommand: python manage.py migrate --noinput
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: 3.12.5
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pro2-db
+          property: connectionString
+    healthCheckPath: '/'
+    autoDeploy: true
+    region: frankfurt
+
+databases:
+  - name: pro2-db
+    plan: free
+    databaseName: pro2
+    user: pro2
